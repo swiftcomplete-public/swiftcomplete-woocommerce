@@ -402,17 +402,27 @@ function swiftcomplete_settings_menu()
 function add_swiftcomplete_billing()
 {
   $settings = get_option('swiftcomplete_settings');
+  $api_key = '';
+
+  if (array_key_exists('api_key', $settings) && strlen($settings['api_key']) > 0)
+    $api_key = $settings['api_key'];
+
   wp_enqueue_script('swiftcomplete_script', 'https://script.swiftcomplete.com/js/swiftcomplete.js');
   wp_enqueue_script('swiftcomplete_launch', plugin_dir_url(__FILE__) . 'addressfinder.js', array('jquery'));
-  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAddressLookup("billing", "' . esc_attr($settings['api_key']) . '", "' . (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] ? 'address,what3words' : 'address') . '", "' . (array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . (array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . (array_key_exists('billing_placeholder', $settings) ? esc_attr($settings['billing_placeholder']) : '') . '")'));
+  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAddressLookup("billing", "' . esc_attr($api_key) . '", "' . (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] ? 'address,what3words' : 'address') . '", "' . (array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . (array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . (array_key_exists('billing_placeholder', $settings) ? esc_attr($settings['billing_placeholder']) : '') . '")'));
 }
 
 function add_swiftcomplete_shipping()
 {
   $settings = get_option('swiftcomplete_settings');
+  $api_key = '';
+
+  if (array_key_exists('api_key', $settings) && strlen($settings['api_key']) > 0)
+    $api_key = $settings['api_key'];
+
   wp_enqueue_script('swiftcomplete_script', 'https://script.swiftcomplete.com/js/swiftcomplete.js');
   wp_enqueue_script('swiftcomplete_launch', plugin_dir_url(__FILE__) . 'addressfinder.js', array('jquery'));
-  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAddressLookup("shipping", "' . esc_attr($settings['api_key']) . '", "' . (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] ? 'address,what3words' : 'address') . '", "' . (array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . (array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . (array_key_exists('shipping_placeholder', $settings) ? esc_attr($settings['shipping_placeholder']) : '') . '")'));
+  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAddressLookup("shipping", "' . esc_attr($api_key) . '", "' . (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] ? 'address,what3words' : 'address') . '", "' . (array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . (array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . (array_key_exists('shipping_placeholder', $settings) ? esc_attr($settings['shipping_placeholder']) : '') . '")'));
 }
 
 add_action('woocommerce_checkout_billing', 'add_swiftcomplete_billing');
