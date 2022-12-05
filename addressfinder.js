@@ -81,7 +81,8 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
 }
 
 function showOrHideFields(type, addressFields, hideFields, countryCode) {
-    swiftcomplete.controls[type].setCountries(countryCode);
+    if (countryCode)
+        swiftcomplete.controls[type].setCountries(countryCode);
 
     var fieldsVisible = true;
 
@@ -104,12 +105,12 @@ function showOrHideFields(type, addressFields, hideFields, countryCode) {
             fieldsVisible = true;
         }
 
-        if (swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode) && !addressValuesExist)
+        if (countryCode && swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode) && !addressValuesExist)
             fieldsVisible = false;
 
         for (var i = 0; i < addressFields.length; i++)
             addressFields[i].container.style.display = fieldsVisible ? 'block' : 'none';
     }
 
-    document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = (swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode) ? 'block' : 'none');
+    document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = ((!countryCode || swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode)) ? 'block' : 'none');
 }
