@@ -2,13 +2,13 @@
 /*
 Plugin Name: Swiftcomplete
 Plugin URI: https://www.swiftcomplete.com
-Version: 1.0.3
+Version: 1.0.4
 Description: Add Swiftcomplete address lookup to the checkout
 Author: Swiftcomplete
 Author URI: https://www.swiftcomplete.com
 */
 
-// Override default address fields --------------------------------------------------------------------------------------------
+// Override default address fields
 $billing_address_fields = array(
   'billing_first_name',
   'billing_last_name',
@@ -43,18 +43,20 @@ add_action('woocommerce_order_details_after_customer_details', 'display_what3wor
 add_action('woocommerce_admin_order_data_after_shipping_address', 'display_what3words_on_order', 10, 1);
 add_filter('woocommerce_form_field', 'remove_checkout_optional_fields_label', 10, 4);
 add_filter('woocommerce_admin_order_preview_get_order_details', 'admin_order_preview_add_what3words', 10, 2);
-add_filter('plugin_action_links_'.plugin_basename(__FILE__), 'swiftcomplete_add_plugin_page_settings_link', 10, 4);
-
-function swiftcomplete_add_plugin_page_settings_link( $actions ) {
-	$mylinks = array('<a href="' . admin_url( 'options-general.php?page=swiftcomplete' ) . '">' . __('Settings') . '</a>'
-  );
-
-  $actions = array_merge( $mylinks, $actions  );
-  return $actions;
-}
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'swiftcomplete_add_plugin_page_settings_link', 10, 4);
 
 if ($settings !== false && array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true) {
   add_action('woocommerce_after_order_notes', 'display_w3w_field');
+}
+
+function swiftcomplete_add_plugin_page_settings_link($actions)
+{
+  $mylinks = array(
+    '<a href="' . admin_url('options-general.php?page=swiftcomplete') . '">' . __('Settings') . '</a>'
+  );
+
+  $actions = array_merge($mylinks, $actions);
+  return $actions;
 }
 
 function display_w3w_field($checkout)
@@ -103,7 +105,7 @@ function admin_order_preview_add_what3words($data, $order)
 
   return $data;
 }
-// -------------------
+
 function override_default_address_fields($address_fields)
 {
   $settings = get_option('swiftcomplete_settings');
@@ -283,6 +285,7 @@ function swiftcomplete_text_header()
 {
   echo "<p class='swiftcomplete-text-sm'>Customise the address search field label and placeholder text (<b>optional</b> - leave fields blank for default text)</p>";
 }
+
 function swiftcomplete_help_text()
 {
 ?>
