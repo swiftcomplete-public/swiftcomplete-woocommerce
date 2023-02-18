@@ -1,5 +1,5 @@
 function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, placeholder) {
-    const woocommercefields = {
+    var woocommercefields = {
         billing: {
             field: "swiftcomplete_billing_address_autocomplete",
             populateLineFormat: [
@@ -8,8 +8,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                 { field: "billing_address_2", format: "SubBuilding" },
                 { field: "billing_city", format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" },
                 { field: "billing_state", format: "" },
-                { field: "billing_postcode", format: "POSTCODE" },
-                { field: "swiftcomplete_what3words", format: "what3words" },
+                { field: "billing_postcode", format: "POSTCODE" }
             ]
         },
         shipping: {
@@ -20,10 +19,14 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                 { field: "shipping_address_2", format: "SubBuilding" },
                 { field: "shipping_city", format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" },
                 { field: "shipping_state", format: "" },
-                { field: "shipping_postcode", format: "POSTCODE" },
-                { field: "swiftcomplete_what3words", format: "what3words" }
+                { field: "shipping_postcode", format: "POSTCODE" }
             ]
         }
+    }
+
+    if (searchFor && searchFor.indexOf('what3words') != -1) {
+        woocommercefields.billing.populateLineFormat.push({ field: "swiftcomplete_what3words", format: "what3words" });
+        woocommercefields.shipping.populateLineFormat.push({ field: "swiftcomplete_what3words", format: "what3words" });
     }
 
     function initialiseSwiftcomplete() {
