@@ -1,68 +1,52 @@
 function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, placeholder) {
-    var woocommercefields = {
-        billing: {
-            field: "swiftcomplete_billing_address_autocomplete",
-            populateLineFormat: [
-                { field: "billing_company", format: "Company" },
-                { field: "billing_address_1", format: "BuildingName, BuildingNumber SecondaryRoad, Road" },
-                { field: "billing_address_2", format: "SubBuilding" },
-                { field: "billing_city", format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" },
-                { field: "billing_state", format: "" },
-                { field: "billing_postcode", format: "POSTCODE" }
-            ]
-        },
-        shipping: {
-            field: "swiftcomplete_shipping_address_autocomplete",
-            populateLineFormat: [
-                { field: "shipping_company", format: "Company" },
-                { field: "shipping_address_1", format: "BuildingName, BuildingNumber SecondaryRoad, Road" },
-                { field: "shipping_address_2", format: "SubBuilding" },
-                { field: "shipping_city", format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" },
-                { field: "shipping_state", format: "" },
-                { field: "shipping_postcode", format: "POSTCODE" }
-            ]
-        }
-    }
-
-    if (searchFor && searchFor.indexOf('what3words') != -1) {
-        woocommercefields.billing.populateLineFormat.push({ field: "swiftcomplete_what3words", format: "what3words" });
-        woocommercefields.shipping.populateLineFormat.push({ field: "swiftcomplete_what3words", format: "what3words" });
-    }
-
     function initialiseSwiftcomplete() {
         swiftcomplete.runWhenReady(function () {
-            if (document.getElementById(woocommercefields[type].field)) {
+            var autocompleteField = document.getElementById('swiftcomplete_' + type + '_address_autocomplete');
+
+            if (autocompleteField) {
+                var address1Format = 'BuildingName, BuildingNumber SecondaryRoad, Road';
+                var addressFields = [];
+
+                if (document.getElementById(type + '_address_2'))
+                    addressFields.push({ container: document.getElementById(type + '_address_2_field'), field: document.getElementById(type + '_address_2'), format: "SubBuilding" });
+                else
+                    address1Format = 'SubBuilding, ' + address1Format;
+                    
+                if (document.getElementById(type + '_company'))
+                    addressFields.push({ container: document.getElementById(type + '_company_field'), field: document.getElementById(type + '_company'), format: "Company" });
+                else
+                    address1Format = 'Company, ' + address1Format;
+
+                addressFields.push({ container: document.getElementById(type + '_address_1_field'), field: document.getElementById(type + '_address_1'), format: address1Format });
+                addressFields.push({ container: document.getElementById(type + '_city_field'), field: document.getElementById(type + '_city'), format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" });
+                addressFields.push({ container: document.getElementById(type + '_state_field'), field: document.getElementById(type + '_state'), format: "" });
+                addressFields.push({ container: document.getElementById(type + '_postcode_field'), field: document.getElementById(type + '_postcode'), format: "POSTCODE" });
+
+                if (searchFor && searchFor.indexOf('what3words') != -1) 
+                    addressFields.push({ container: document.getElementById('swiftcomplete_what3words_field'), field: document.getElementById("swiftcomplete_what3words"), format: "what3words" });
+
                 swiftcomplete.controls[type] = new swiftcomplete.PlaceAutoComplete({
                     key,
                     searchFor: searchFor,
-                    field: document.getElementById(woocommercefields[type].field),
+                    field: autocompleteField,
                     emptyQueryMode: 'prompt',
                     promptText: placeholder,
                     noResultsText: 'No addresses found - click here to enter your address manually',
                     manualEntryText: 'Can\'t find your address? Click here to enter manually',
-                    populateLineFormat: woocommercefields[type].populateLineFormat.map(f => ({
-                        field: document.getElementById(f.field),
+                    populateLineFormat: addressFields.map(f => ({
+                        field: f.field,
                         format: f.format
                     }))
                 });
 
                 swiftcomplete.controls[type].biasTowards(biasTowards);
 
-                var addressFields = [
-                    { container: document.getElementById(type + '_company_field'), field: document.getElementById(type + '_company') },
-                    { container: document.getElementById(type + '_address_1_field'), field: document.getElementById(type + '_address_1') },
-                    { container: document.getElementById(type + '_address_2_field'), field: document.getElementById(type + '_address_2') },
-                    { container: document.getElementById(type + '_city_field'), field: document.getElementById(type + '_city') },
-                    { container: document.getElementById(type + '_state_field'), field: document.getElementById(type + '_state') },
-                    { container: document.getElementById(type + '_postcode_field'), field: document.getElementById(type + '_postcode') }
-                ];
-
-                document.getElementById(woocommercefields[type].field).addEventListener('swiftcomplete:place:selected', function (e) {
+                autocompleteField.addEventListener('swiftcomplete:place:selected', function (e) {
                     for (var i = 0; i < addressFields.length; i++)
                         addressFields[i].container.style.display = 'block';
                 }, false);
 
-                document.getElementById(woocommercefields[type].field).addEventListener('swiftcomplete:place:manualentry', function (e) {
+                autocompleteField.addEventListener('swiftcomplete:place:manualentry', function (e) {
                     for (var i = 0; i < addressFields.length; i++) {
                         document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = 'none';
                         addressFields[i].container.style.display = 'block';
@@ -100,7 +84,7 @@ function showOrHideFields(type, addressFields, hideFields, countryCode) {
                     continue;
                 }
 
-                if (addressFields[i].field.value.length > 0)
+                if (addressFields[i].field.value.length > 0 && !(addressFields[i].field.id == 'billing_state' || addressFields[i].field.id == 'shipping_state'))
                     addressValuesExist = true;
             }
         } catch (err) {
@@ -111,8 +95,9 @@ function showOrHideFields(type, addressFields, hideFields, countryCode) {
         if (countryCode && swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode) && !addressValuesExist)
             fieldsVisible = false;
 
+            
         for (var i = 0; i < addressFields.length; i++)
-            addressFields[i].container.style.display = fieldsVisible ? 'block' : 'none';
+            addressFields[i].container.style.display = (addressFields[i].field.id == 'swiftcomplete_what3words' || fieldsVisible) ? 'block' : 'none';
     }
 
     document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = ((!countryCode || swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode)) ? 'block' : 'none');

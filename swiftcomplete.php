@@ -8,33 +8,6 @@ Author: Swiftcomplete
 Author URI: https://www.swiftcomplete.com
 */
 
-// Override default address fields
-$billing_address_fields = array(
-  'billing_first_name',
-  'billing_last_name',
-  'billing_country',
-  'billing_address_autocomplete',
-  'billing_company',
-  'billing_address_2',
-  'billing_address_1',
-  'billing_city',
-  'billing_postcode',
-  'billing_state',
-);
-
-$shipping_address_fields = array(
-  'shipping_first_name',
-  'shipping_last_name',
-  'shipping_country',
-  'shipping_address_autocomplete',
-  'shipping_company',
-  'shipping_address_2',
-  'shipping_address_1',
-  'shipping_city',
-  'shipping_postcode',
-  'shipping_state',
-);
-
 $settings = get_option('swiftcomplete_settings');
 
 add_filter('woocommerce_checkout_fields', 'override_default_address_fields');
@@ -123,6 +96,49 @@ function override_default_address_fields($address_fields)
   $billing_label = $settings !== false && array_key_exists('billing_label', $settings) && strlen($settings['billing_label']) > 0 ? esc_attr($settings['billing_label']) : 'Address Finder';
   $shipping_label = $settings !== false && array_key_exists('shipping_label', $settings) && strlen($settings['shipping_label']) > 0 ? esc_attr($settings['shipping_label']) : 'Address Finder';
 
+  // Override default address fields
+  $billing_address_fields = array(
+    'billing_first_name',
+    'billing_last_name',
+    'billing_country',
+    'billing_address_autocomplete',
+    'billing_company',
+    'billing_address_2',
+    'billing_address_1',
+    'billing_city',
+    'billing_postcode',
+    'billing_state',
+  );
+
+  foreach ($billing_address_fields as $key => $value) {
+    if ($value == 'billing_company' && !array_key_exists('billing_company', $address_fields['billing'])) {
+      unset($billing_address_fields[$key]);
+    }else if ($value == 'billing_address_2' && !array_key_exists('billing_address_2', $address_fields['billing'])) {
+      unset($billing_address_fields[$key]);
+    }
+  }
+
+  $shipping_address_fields = array(
+    'shipping_first_name',
+    'shipping_last_name',
+    'shipping_country',
+    'shipping_address_autocomplete',
+    'shipping_company',
+    'shipping_address_2',
+    'shipping_address_1',
+    'shipping_city',
+    'shipping_postcode',
+    'shipping_state',
+  );
+
+  foreach ($shipping_address_fields as $key => $value) {
+    if ($value == 'shipping_company' && !array_key_exists('shipping_company', $address_fields['shipping'])) {
+      unset($shipping_address_fields[$key]);
+    }else if ($value == 'shipping_address_2' && !array_key_exists('shipping_address_2', $address_fields['shipping'])) {
+      unset($shipping_address_fields[$key]);
+    }
+  }
+
   $address_fields['billing']['billing_address_autocomplete'] = array(
     'label'     => __($billing_label, 'woocommerce'),
     'required'  => false,
@@ -142,7 +158,6 @@ function override_default_address_fields($address_fields)
   );
 
   $priority = 0;
-  global $billing_address_fields;
 
   foreach ($billing_address_fields as $key) {
     $address_fields['billing'][$key]['priority'] = $priority;
@@ -150,7 +165,6 @@ function override_default_address_fields($address_fields)
   }
 
   $priority = 0;
-  global $shipping_address_fields;
 
   foreach ($shipping_address_fields as $key) {
     $address_fields['shipping'][$key]['priority'] = $priority;
