@@ -81,8 +81,8 @@ function admin_order_preview_add_what3words($data, $order)
 
 function override_default_address_fields($address_fields)
 {
-  $w3w_enabled = $settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true));
   $settings = get_option('swiftcomplete_settings');
+  $w3w_enabled = $settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true));
 
   if ($settings !== false && array_key_exists('billing_placeholder', $settings) && strlen($settings['billing_placeholder']) > 0)
     $billing_placeholder = esc_attr($settings['billing_placeholder']);
