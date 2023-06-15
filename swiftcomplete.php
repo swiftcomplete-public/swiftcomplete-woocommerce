@@ -379,20 +379,11 @@ function swiftcomplete_help_text()
         <h1>Swiftcomplete Address Autocomplete Plugin</h1>
         <p class="swiftcomplete-text">Capture accurate billing and shipping addresses with Swiftcomplete's Address Autocomplete plugin for WooCommerce.</p>
         <div style="display: none;" id="swiftcomplete-setup-instructions">
-          <h1>1. Sign up for Swiftcomplete</h1>
-          <p class="swiftcomplete-text-sm"><a href='https://www.swiftcomplete.com/account/register/' target="_blank">Create a Swiftcomplete account</a> (or <a href='https://www.swiftcomplete.com/account/login/' target="_blank">sign in</a>)</p>
-          <h1>2. Enable what3words? (optional)</h1>
-          <p class="swiftcomplete-text-sm">Would you like to allow customers to optionally add ///what3words accurate delivery points to their address?</p>
-          <p class="swiftcomplete-text-sm">What3words divides the whole world into 3x3 metre squares. It's ideal for helping couriers reliably find difficult addresses (particularly rural deliveries where postcodes cover a large area).</p>
-          <p class="swiftcomplete-text-sm">If you want to use what3words, go to step 3a. If not, skip to step 3b.</p>
-          <h1>3a. Setup with what3words</h1>
-          <p class="swiftcomplete-text-sm">Go to the <a href="https://www.swiftcomplete.com/account/api/" target="_blank">API keys page</a>, and create a <b>what3words API key</b>.</p>
-          <p class="swiftcomplete-text-sm">Copy and paste your API key in the text box at the bottom of this page, tick <b>Enable what3words</b>, and click <b>Save</b>.</p>
-          <p class="swiftcomplete-text-sm">Skip to step 4.</p>
-          <h1>3b. Setup without what3words</h1>
-          <p class="swiftcomplete-text-sm">Go to the <a href="https://www.swiftcomplete.com/account/api/" target="_blank">API keys page</a>, and create an <b>Address Autocomplete API key</b>.
-          <p class="swiftcomplete-text-sm">Copy and paste your API key in the text box at the bottom of this page, and click <b>Save</b>.</p>
-          <h1>4. Finished</h1>
+          <h1>Step 1: Activate the plugin with Swiftcomplete</h1>
+          <p class="swiftcomplete-text-sm">Create an API key by <a href='https://www.swiftcomplete.com/woocommerce/activate/' target="_blank">activating your plugin with Swiftcomplete</a>.</p>
+          <h1>Step 2: Copy and paste API key</h1>
+          <p class="swiftcomplete-text-sm">Copy and paste the API key from the activation page to the API key field on this page, and click <b>Save</b>.</p>
+          <h1>Step 3: Test</h1>
           <p class="swiftcomplete-text-sm">Go to your checkout page. There should be a new Address Finder search field in the billing and shipping address sections.</p>
           <p class="swiftcomplete-text-sm">Try searching for a postcode or address. Click the address, and it should be filled into your form correctly.</p>
           <p class="swiftcomplete-text-sm"><b>Any problems?</b> <a href="https://www.swiftcomplete.com/contact-us/" target="_blank">Get in touch with our customer support team</a> and we'll help you work through any issues.</p>
