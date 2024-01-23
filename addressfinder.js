@@ -21,7 +21,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                 addressFields.push({ container: document.getElementById(type + '_city_field'), field: document.getElementById(type + '_city'), format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" });
 
                 if (document.getElementById(type + '_state') && returnStateCounty)
-                    addressFields.push({ container: document.getElementById(type + '_state_field'), field: document.getElementById(type + '_state'), format: "County" });
+                    addressFields.push({ container: document.getElementById(type + '_state_field'), field: document.getElementById(type + '_state'), format: "CeremonialCounty STATEABBREVIATION" });
                 else
                     addressFields.push({ container: document.getElementById(type + '_state_field'), field: document.getElementById(type + '_state'), format: "" });
 
@@ -115,7 +115,7 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
         addressFields.push({ field: document.getElementById(type + '-city'), format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" });
 
         if (document.getElementById(type + '-state') && returnStateCounty)
-            addressFields.push({ field: document.getElementById(type + '-state'), format: "County" });
+            addressFields.push({ field: document.getElementById(type + '-state'), format: "CeremonialCounty STATEABBREVIATION" });
         else
             addressFields.push({ field: document.getElementById(type + '-state'), format: "" });
 
