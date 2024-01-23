@@ -72,15 +72,16 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
         });
     }
 
-    jQuery(document).ready(initialiseSwiftcomplete);
+    setTimeout(function () {
+        jQuery(document).ready(initialiseSwiftcomplete);
+    }, 300);
 }
 
 function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty) {
     if (!document.getElementById(type + '-address_1')) {
-        console.log('y');
         setTimeout(function () {
             initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty);
-        }, 100);
+        }, 1000);
         return;
     }
     try {
