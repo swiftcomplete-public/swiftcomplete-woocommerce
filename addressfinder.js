@@ -65,11 +65,103 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                         showOrHideFields(type, addressFields, hideFields, $(this).val());
                     });
                 });
+            } else {
+                // Workaround for WooCommerce Blocks
+                initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty);
             }
         });
     }
 
-    jQuery(document).ready(initialiseSwiftcomplete)
+    jQuery(document).ready(initialiseSwiftcomplete);
+}
+
+function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty) {
+    if (!document.getElementById(type + '-address_1')) {
+        console.log('y');
+        setTimeout(function () {
+            initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty);
+        }, 100);
+        return;
+    }
+    try {
+        var newFieldContainer = document.createElement('div');
+        newFieldContainer.className = 'wc-block-components-text-input';
+
+        var newField = document.createElement('input');
+        newField.setAttribute('type', 'text');
+        newField.setAttribute('id', 'swiftcomplete_' + type + '_address_autocomplete');
+        newField.setAttribute('placeholder', placeholder);
+        newFieldContainer.appendChild(newField);
+
+        document.getElementById(type + '-address_1').parentNode.parentNode.insertBefore(newFieldContainer, document.getElementById(type + '-address_1').parentNode);
+
+        autocompleteField = document.getElementById('swiftcomplete_' + type + '_address_autocomplete');
+
+        var address1Format = 'BuildingName, BuildingNumber SecondaryRoad, Road';
+        var addressFields = [];
+
+        if (document.getElementById(type + '-address_2'))
+            addressFields.push({ field: document.getElementById(type + '-address_2'), format: "SubBuilding" });
+        else
+            address1Format = 'SubBuilding, ' + address1Format;
+
+        if (document.getElementById(type + '-company'))
+            addressFields.push({ field: document.getElementById(type + '-company'), format: "Company" });
+        else
+            address1Format = 'Company, ' + address1Format;
+
+        addressFields.push({ field: document.getElementById(type + '-address_1'), format: address1Format });
+        addressFields.push({ field: document.getElementById(type + '-city'), format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" });
+
+        if (document.getElementById(type + '-state') && returnStateCounty)
+            addressFields.push({ field: document.getElementById(type + '-state'), format: "County" });
+        else
+            addressFields.push({ field: document.getElementById(type + '-state'), format: "" });
+
+        addressFields.push({ field: document.getElementById(type + '-postcode'), format: "POSTCODE" });
+
+        if (searchFor && searchFor.indexOf('what3words') != -1)
+            addressFields.push({ field: document.getElementById("swiftcomplete_what3words"), format: "what3words" });
+
+        swiftcomplete.controls[type] = new swiftcomplete.PlaceAutoComplete({
+            key,
+            searchFor: searchFor,
+            field: autocompleteField,
+            emptyQueryMode: 'prompt',
+            promptText: placeholder,
+            noResultsText: 'No addresses found - click here to enter your address manually',
+            manualEntryText: 'Can\'t find your address? Click here to enter manually',
+            populateReact: true,
+            populateLineFormat: addressFields.map(f => ({
+                field: f.field,
+                format: f.format
+            }))
+        });
+
+        swiftcomplete.controls[type].biasTowards(biasTowards);
+
+        autocompleteField.addEventListener('swiftcomplete:place:selected', function (e) {
+            if (document.getElementById(type + '-postcode'))
+                document.getElementById(type + '-postcode').dispatchEvent(new Event('input', { bubbles: true }));
+        }, false);
+
+        autocompleteField.addEventListener('swiftcomplete:place:manualentry', function (e) {
+            for (var i = 0; i < addressFields.length; i++) {
+                document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = 'none';
+                addressFields[i].container.style.display = 'block';
+            }
+        }, false);
+
+        jQuery(function ($) {
+            showOrHideFields(type, addressFields, hideFields, $('select[name=' + type + '_country]').val());
+
+            $(document.body).on('change', 'select[name=' + type + '_country]', function () {
+                showOrHideFields(type, addressFields, hideFields, $(this).val());
+            });
+        });
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 function showOrHideFields(type, addressFields, hideFields, countryCode) {
@@ -105,5 +197,6 @@ function showOrHideFields(type, addressFields, hideFields, countryCode) {
             addressFields[i].container.style.display = (addressFields[i].field.id == 'swiftcomplete_what3words' || fieldsVisible) ? 'block' : 'none';
     }
 
-    document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = ((!countryCode || swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode)) ? 'block' : 'none');
+    if (document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field'))
+        document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = ((!countryCode || swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode)) ? 'block' : 'none');
 }
