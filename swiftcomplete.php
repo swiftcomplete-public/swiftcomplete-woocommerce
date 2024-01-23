@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: Swiftcomplete
-Plugin URI: https://www.swiftcomplete.com
-Version: 1.0.4
-Description: Add Swiftcomplete address lookup to the checkout
+Plugin Name: Address Autocomplete & Validation for WooCommerce
+Plugin URI: https://www.swiftcomplete.com/integrations/woocommerce/
+Version: 1.0.5
+Description: Swiftcomplete Address Autocomplete & Validation Plugin for WooCommerce
 Author: Swiftcomplete
 Author URI: https://www.swiftcomplete.com
 */
@@ -196,11 +196,21 @@ function swiftcomplete_w3w_enabled()
     echo "<input id='swiftcomplete_w3w_enabled' name='swiftcomplete_settings[w3w_enabled]' type='checkbox' />";
 }
 
+function swiftcomplete_state_counties_enabled()
+{
+  $settings = get_option('swiftcomplete_settings');
+
+  if ($settings === false || !array_key_exists('state_counties_enabled', $settings)) {
+    echo "<input id='swiftcomplete_state_counties_enabled' name='swiftcomplete_settings[state_counties_enabled]' type='checkbox' checked />";
+  } else
+    echo "<input id='swiftcomplete_state_counties_enabled' name='swiftcomplete_settings[state_counties_enabled]' type='checkbox' " . ($settings['state_counties_enabled'] ? "checked " : "") . "/>";
+}
+
 function swiftcomplete_hide_fields()
 {
   $settings = get_option('swiftcomplete_settings');
   if ($settings === false || !array_key_exists('hide_fields', $settings)) {
-    echo "<input id='swiftcomplete_hide_fields' name='swiftcomplete_settings[hide_fields]' type='checkbox' checked />";
+    echo "<input id='swiftcomplete_hide_fields' name='swiftcomplete_settings[hide_fields]' type='checkbox' />";
   } else
     echo "<input id='swiftcomplete_hide_fields' name='swiftcomplete_settings[hide_fields]' type='checkbox' " . ($settings['hide_fields'] ? "checked " : "") . "/>";
 }
@@ -269,6 +279,7 @@ function swiftcomplete_settings_validate($input)
   $newinput['bias_towards'] = sanitize_text_field($input['bias_towards']);
   $newinput['bias_towards_lat_lon'] = sanitize_text_field($input['bias_towards_lat_lon']);
   $newinput['w3w_enabled'] = $input['w3w_enabled'] == true;
+  $newinput['state_counties_enabled'] = $input['state_counties_enabled'] == true;
   $newinput['hide_fields'] = $input['hide_fields'] == true;
   return $newinput;
 }
@@ -281,6 +292,7 @@ function swiftcomplete_settings()
   add_settings_field('swiftcomplete_api_key', 'API Key', 'swiftcomplete_api_key', 'swiftcomplete', 'swiftcomplete_api_settings');
   add_settings_field('swiftcomplete_w3w_enabled', 'Enable what3words?', 'swiftcomplete_w3w_enabled', 'swiftcomplete', 'swiftcomplete_api_settings');
   add_settings_field('swiftcomplete_hide_fields', 'Hide address fields until an address is selected?', 'swiftcomplete_hide_fields', 'swiftcomplete', 'swiftcomplete_api_settings');
+  add_settings_field('swiftcomplete_state_counties_enabled', 'Return states / UK counties?', 'swiftcomplete_state_counties_enabled', 'swiftcomplete', 'swiftcomplete_api_settings');
 
   add_settings_section('swiftcomplete_country_settings', 'Location biasing', 'swiftcomplete_country_header', 'swiftcomplete');
   add_settings_field('swiftcomplete_bias_towards', 'Prioritise addresses near place', 'swiftcomplete_bias_towards', 'swiftcomplete', 'swiftcomplete_country_settings');
@@ -429,7 +441,7 @@ function add_swiftcomplete_billing()
 
   wp_enqueue_script('swiftcomplete_script', 'https://script.swiftcomplete.com/js/swiftcomplete.js');
   wp_enqueue_script('swiftcomplete_launch', plugin_dir_url(__FILE__) . 'addressfinder.js', array('jquery'));
-  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAddressLookup("billing", "' . esc_attr($api_key) . '", "' . ($settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true)) ? 'address,what3words' : 'address') . '", "' . ($settings !== false && array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . ($settings !== false && array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . ($settings !== false && array_key_exists('billing_placeholder', $settings) ? esc_attr($settings['billing_placeholder']) : '') . '")'));
+  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAddressLookup("billing", "' . esc_attr($api_key) . '", "' . ($settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true)) ? 'address,what3words' : 'address') . '", "' . ($settings !== false && array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . ($settings !== false && array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . ($settings !== false && array_key_exists('billing_placeholder', $settings) ? esc_attr($settings['billing_placeholder']) : '') . '", "' . ($settings !== false && array_key_exists('state_counties_enabled', $settings) ? esc_attr($settings['state_counties_enabled']) : '') . '")'));
 }
 
 function add_swiftcomplete_shipping()
@@ -442,7 +454,7 @@ function add_swiftcomplete_shipping()
 
   wp_enqueue_script('swiftcomplete_script', 'https://script.swiftcomplete.com/js/swiftcomplete.js');
   wp_enqueue_script('swiftcomplete_launch', plugin_dir_url(__FILE__) . 'addressfinder.js', array('jquery'));
-  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAddressLookup("shipping", "' . esc_attr($api_key) . '", "' . ($settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true)) ? 'address,what3words' : 'address') . '", "' . ($settings !== false && array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . ($settings !== false && array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . ($settings !== false && array_key_exists('shipping_placeholder', $settings) ? esc_attr($settings['shipping_placeholder']) : '') . '")'));
+  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAddressLookup("shipping", "' . esc_attr($api_key) . '", "' . ($settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true)) ? 'address,what3words' : 'address') . '", "' . ($settings !== false && array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . ($settings !== false && array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . ($settings !== false && array_key_exists('shipping_placeholder', $settings) ? esc_attr($settings['shipping_placeholder']) : '') . '", "' . ($settings !== false && array_key_exists('state_counties_enabled', $settings) ? esc_attr($settings['state_counties_enabled']) : '') . '")'));
 }
 
 add_action('woocommerce_checkout_billing', 'add_swiftcomplete_billing');

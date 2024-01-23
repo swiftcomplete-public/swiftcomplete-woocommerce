@@ -1,4 +1,4 @@
-function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, placeholder) {
+function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty) {
     function initialiseSwiftcomplete() {
         swiftcomplete.runWhenReady(function () {
             var autocompleteField = document.getElementById('swiftcomplete_' + type + '_address_autocomplete');
@@ -11,7 +11,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                     addressFields.push({ container: document.getElementById(type + '_address_2_field'), field: document.getElementById(type + '_address_2'), format: "SubBuilding" });
                 else
                     address1Format = 'SubBuilding, ' + address1Format;
-                    
+
                 if (document.getElementById(type + '_company'))
                     addressFields.push({ container: document.getElementById(type + '_company_field'), field: document.getElementById(type + '_company'), format: "Company" });
                 else
@@ -19,10 +19,15 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
 
                 addressFields.push({ container: document.getElementById(type + '_address_1_field'), field: document.getElementById(type + '_address_1'), format: address1Format });
                 addressFields.push({ container: document.getElementById(type + '_city_field'), field: document.getElementById(type + '_city'), format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" });
-                addressFields.push({ container: document.getElementById(type + '_state_field'), field: document.getElementById(type + '_state'), format: "" });
+
+                if (document.getElementById(type + '_state') && returnStateCounty)
+                    addressFields.push({ container: document.getElementById(type + '_state_field'), field: document.getElementById(type + '_state'), format: "County" });
+                else
+                    addressFields.push({ container: document.getElementById(type + '_state_field'), field: document.getElementById(type + '_state'), format: "" });
+
                 addressFields.push({ container: document.getElementById(type + '_postcode_field'), field: document.getElementById(type + '_postcode'), format: "POSTCODE" });
 
-                if (searchFor && searchFor.indexOf('what3words') != -1) 
+                if (searchFor && searchFor.indexOf('what3words') != -1)
                     addressFields.push({ container: document.getElementById('swiftcomplete_what3words_field'), field: document.getElementById("swiftcomplete_what3words"), format: "what3words" });
 
                 swiftcomplete.controls[type] = new swiftcomplete.PlaceAutoComplete({
@@ -95,7 +100,7 @@ function showOrHideFields(type, addressFields, hideFields, countryCode) {
         if (countryCode && swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode) && !addressValuesExist)
             fieldsVisible = false;
 
-            
+
         for (var i = 0; i < addressFields.length; i++)
             addressFields[i].container.style.display = (addressFields[i].field.id == 'swiftcomplete_what3words' || fieldsVisible) ? 'block' : 'none';
     }
