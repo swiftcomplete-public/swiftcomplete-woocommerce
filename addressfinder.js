@@ -145,6 +145,9 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
         autocompleteField.addEventListener('swiftcomplete:place:selected', function (e) {
             if (document.getElementById(type + '-postcode'))
                 document.getElementById(type + '-postcode').dispatchEvent(new Event('input', { bubbles: true }));
+
+            for (var i = 0; i < addressFields.length; i++)
+                addressFields[i].container.style.display = 'block';
         }, false);
 
         autocompleteField.addEventListener('swiftcomplete:place:manualentry', function (e) {
