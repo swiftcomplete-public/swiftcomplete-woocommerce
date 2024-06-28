@@ -194,10 +194,7 @@ function showOrHideFields(type, addressFields, hideFields, countryCode, isBlocks
             fieldsVisible = true;
         }
 
-        if (isBlocks) {
-            if (!addressValuesExist)
-                fieldsVisible = false;
-        } else if (countryCode && swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode) && !addressValuesExist)
+        if (!addressValuesExist)
             fieldsVisible = false;
 
         for (var i = 0; i < addressFields.length; i++)
