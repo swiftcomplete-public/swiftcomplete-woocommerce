@@ -77,6 +77,69 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
     }, 300);
 }
 
+function launchAdminAddressLookup(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty) {
+    function initialiseSwiftcomplete() {
+        swiftcomplete.runWhenReady(function () {
+            var autocompleteField = document.getElementById('swiftcomplete_' + type + '_address_autocomplete');
+
+            if (autocompleteField) {
+                var address1Format = 'BuildingName, BuildingNumber SecondaryRoad, Road';
+                var addressFields = [];
+
+                if (document.getElementById('_' + type + '_address_2'))
+                    addressFields.push({ field: document.getElementById('_' + type + '_address_2'), format: "SubBuilding" });
+                else
+                    address1Format = 'SubBuilding, ' + address1Format;
+
+                if (document.getElementById('_' + type + '_company'))
+                    addressFields.push({ field: document.getElementById('_' + type + '_company'), format: "Company" });
+                else
+                    address1Format = 'Company, ' + address1Format;
+
+                addressFields.push({ field: document.getElementById('_' + type + '_address_1'), format: address1Format });
+                addressFields.push({ field: document.getElementById('_' + type + '_city'), format: "TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY" });
+
+                if (document.getElementById('_' + type + '_state') && returnStateCounty)
+                    addressFields.push({ field: document.getElementById('_' + type + '_state'), format: "CeremonialCounty STATEABBREVIATION" });
+                else
+                    addressFields.push({ field: document.getElementById('_' + type + '_state'), format: "" });
+
+                addressFields.push({ field: document.getElementById('_' + type + '_postcode'), format: "POSTCODE" });
+
+                swiftcomplete.controls[type] = new swiftcomplete.PlaceAutoComplete({
+                    key,
+                    searchFor: searchFor,
+                    field: autocompleteField,
+                    emptyQueryMode: 'prompt',
+                    promptText: placeholder,
+                    noResultsText: 'No addresses found - click here to enter your address manually',
+                    manualEntryText: 'Can\'t find your address? Click here to enter manually',
+                    populateLineFormat: addressFields.map(f => ({
+                        field: f.field,
+                        format: f.format
+                    }))
+                });
+
+                swiftcomplete.controls[type].biasTowards(biasTowards);
+
+                jQuery(function ($) {
+                    
+                    swiftcomplete.controls[type].setCountries($('select[name=_' + type + '_country]').val());
+
+                    $(document.body).on('change', 'select[name=_' + type + '_country]', function () {
+                        console.log($('select[name=_' + type + '_country]').val());
+                        swiftcomplete.controls[type].setCountries($('select[name=_' + type + '_country]').val().toLowerCase());
+                    });
+                });
+            }
+        });
+    }
+
+    setTimeout(function () {
+        jQuery(document).ready(initialiseSwiftcomplete);
+    }, 300);
+}
+
 function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty) {
     if (!document.getElementById(type + '-address_1')) {
         setTimeout(function () {

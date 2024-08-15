@@ -16,6 +16,8 @@ add_action('woocommerce_order_details_after_customer_details', 'display_what3wor
 add_action('woocommerce_admin_order_data_after_shipping_address', 'display_what3words_on_order', 10, 1);
 add_filter('woocommerce_form_field', 'remove_checkout_optional_fields_label', 10, 4);
 add_filter('woocommerce_admin_order_preview_get_order_details', 'admin_order_preview_add_what3words', 10, 2);
+add_filter('woocommerce_admin_billing_fields', 'add_swiftcomplete_order_billing', 10, 2);
+add_filter('woocommerce_admin_shipping_fields', 'add_swiftcomplete_order_shipping', 10, 2);
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'swiftcomplete_add_plugin_page_settings_link', 10, 4);
 
 if ($settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true))) {
@@ -428,6 +430,78 @@ function swiftcomplete_settings_page()
 function swiftcomplete_settings_menu()
 {
   add_submenu_page('options-general.php', 'Swiftcomplete', 'Swiftcomplete', 'manage_options', 'swiftcomplete', 'swiftcomplete_settings_page');
+}
+// Add Swiftcomplete to order page --------------------------------------------------------------------------------------------
+function add_swiftcomplete_order_billing($fields)
+{
+  $settings = get_option('swiftcomplete_settings');
+  $api_key = '';
+
+  if ($settings !== false && array_key_exists('api_key', $settings) && strlen($settings['api_key']) > 0)
+    $api_key = $settings['api_key'];
+
+  wp_enqueue_script('swiftcomplete_script', 'https://script.swiftcomplete.com/js/swiftcomplete.js');
+  wp_enqueue_script('swiftcomplete_launch', plugin_dir_url(__FILE__) . 'addressfinder.js', array('jquery'), '1.0.5');
+  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAdminAddressLookup("billing", "' . esc_attr($api_key) . '", "' . ($settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true)) ? 'address' : 'address') . '", "' . ($settings !== false && array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . ($settings !== false && array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . ($settings !== false && array_key_exists('billing_placeholder', $settings) ? esc_attr($settings['billing_placeholder']) : '') . '", "' . ($settings !== false && array_key_exists('state_counties_enabled', $settings) ? esc_attr($settings['state_counties_enabled']) : '') . '")'));
+
+  $position = array_search('company', array_keys($fields));
+  
+  if ($position == false)
+    $position = array_search('address_1', array_keys($fields));
+
+  $search_field = array(
+    'label' => __('Address Finder', 'text-domain'),
+    'class'     => 'form-field-wide',
+    'show' => true,
+    'type'  => 'text',
+    'id' => 'swiftcomplete_billing_address_autocomplete'
+  );
+
+  if ($position == false) {
+    $fields['swiftcomplete_billing_address_autocomplete'] = $search_field;
+  }else{
+    $array = array_slice($fields, 0, $position, true);
+    $array['swiftcomplete_billing_address_autocomplete'] = $search_field;
+    $fields = $array + array_slice($fields, $position, null, true);
+  }
+
+  return $fields;
+}
+
+function add_swiftcomplete_order_shipping($fields)
+{
+  $settings = get_option('swiftcomplete_settings');
+  $api_key = '';
+
+  if ($settings !== false && array_key_exists('api_key', $settings) && strlen($settings['api_key']) > 0)
+    $api_key = $settings['api_key'];
+
+  wp_enqueue_script('swiftcomplete_script', 'https://script.swiftcomplete.com/js/swiftcomplete.js');
+  wp_enqueue_script('swiftcomplete_launch', plugin_dir_url(__FILE__) . 'addressfinder.js', array('jquery'), '1.0.5');
+  wp_add_inline_script('swiftcomplete_launch', sprintf('launchAdminAddressLookup("shipping", "' . esc_attr($api_key) . '", "' . ($settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true)) ? 'address' : 'address') . '", "' . ($settings !== false && array_key_exists('hide_fields', $settings) && $settings['hide_fields'] ? true : false) . '", "' . ($settings !== false && array_key_exists('bias_towards_lat_lon', $settings) ? esc_attr($settings['bias_towards_lat_lon']) : '') . '", "' . ($settings !== false && array_key_exists('billing_placeholder', $settings) ? esc_attr($settings['billing_placeholder']) : '') . '", "' . ($settings !== false && array_key_exists('state_counties_enabled', $settings) ? esc_attr($settings['state_counties_enabled']) : '') . '")'));
+
+  $position = array_search('company', array_keys($fields));
+  
+  if ($position == false)
+    $position = array_search('address_1', array_keys($fields));
+
+  $search_field = array(
+    'label' => __('Address Finder', 'text-domain'),
+    'class'     => 'form-field-wide',
+    'show' => true,
+    'type'  => 'text',
+    'id' => 'swiftcomplete_shipping_address_autocomplete'
+  );
+
+  if ($position == false) {
+    $fields['swiftcomplete_shipping_address_autocomplete'] = $search_field;
+  }else{
+    $array = array_slice($fields, 0, $position, true);
+    $array['swiftcomplete_shipping_address_autocomplete'] = $search_field;
+    $fields = $array + array_slice($fields, $position, null, true);
+  }
+
+  return $fields;
 }
 
 // Add Swiftcomplete to checkout --------------------------------------------------------------------------------------------
