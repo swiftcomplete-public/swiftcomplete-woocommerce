@@ -47,8 +47,14 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                 swiftcomplete.controls[type].biasTowards(biasTowards);
 
                 autocompleteField.addEventListener('swiftcomplete:place:selected', function (e) {
-                    for (var i = 0; i < addressFields.length; i++)
+                    for (var i = 0; i < addressFields.length; i++) {
                         addressFields[i].container.style.display = 'block';
+
+                        if (addressFields[i].container && addressFields[i].container.classList && addressFields[i].container.classList.contains('validate-required')) {
+                            addressFields[i].container.classList.remove('woocommerce-invalid', 'woocommerce-invalid-required-field');
+                            addressFields[i].container.classList.add('woocommerce-validated');
+                        }
+                    }
                 }, false);
 
                 autocompleteField.addEventListener('swiftcomplete:place:manualentry', function (e) {
@@ -123,7 +129,7 @@ function launchAdminAddressLookup(type, key, searchFor, hideFields, biasTowards,
                 swiftcomplete.controls[type].biasTowards(biasTowards);
 
                 jQuery(function ($) {
-                    
+
                     swiftcomplete.controls[type].setCountries($('select[name=_' + type + '_country]').val());
 
                     $(document.body).on('change', 'select[name=_' + type + '_country]', function () {
