@@ -329,7 +329,7 @@ function swiftcomplete_help_text()
             r.parentNode.insertBefore(s, r)
         }(window, document, "https://www.swiftcomplete.com/js/what3words.js");
 
-    var SWIFTCOMPLETE_API_KEY = "ba6e0772-42c3-4cd8-b4d2-a48562366987";
+    var SWIFTCOMPLETE_API_KEY = "";
     var SWIFTCOMPLETE_SEARCH_FIELD_ID = "swiftcomplete_bias_towards";
 
     function initialiseSwiftcomplete() {
