@@ -1,17 +1,18 @@
-=== Swiftcomplete Address Autocomplete & Validation Plugin for WooCommerce ===
+=== Swiftcomplete for WooCommerce ===
 Contributors: Swiftcomplete
 Tags: Swiftcomplete, address validator, what3words address, searchbox, search, address, validation, autosuggest, w3w
 Requires at least: 4.7
 Tested up to: 6.4
-Stable tag: 1.0.4
+Stable tag: 2.0.0
+Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
+
+__Swiftcomplete is a software that allows you to look up and validate addresses, postcodes and coordinates__
 
 == Description ==
 
 https://drive.google.com/file/d/1yVwFf_CANlU79F-1a-IqUeMSwTU7MRlN/view
-
-__Swiftcomplete is a software that allows you to look up and validate addresses, postcodes and coordinates__
 
 Swiftcomplete is designed to be integrated into your address capture flow, for example on e-commerce checkout pages. 
 
@@ -55,3 +56,35 @@ You can learn more about our privacy policy here:
 = Get in touch with us =
 
 Have any questions? Want to learn more about how the Swiftcomplete Address Autocomplete plugin works? Get in touch with us at [support@swiftcomplete.com](mailto:support@swiftcomplete.com).
+
+== Frequently Asked Questions ==
+
+= A question that someone might have =
+
+An answer to that question.
+
+= What about foo bar? =
+
+Answer to foo bar dilemma.
+
+== Screenshots ==
+
+1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Screenshots are stored in the /assets directory.
+2. This is the second screen shot
+
+== Changelog ==
+
+= 1.0 =
+* A change since the previous version.
+* Another change.
+
+= 0.5 =
+* List versions from most recent at top to oldest at bottom.
+
+== Upgrade Notice ==
+
+= 1.0 =
+Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
+
+= 0.5 =
+This version fixes a security related bug.  Upgrade immediately.
