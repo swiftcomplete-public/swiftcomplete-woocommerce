@@ -6,13 +6,7 @@ Tested up to: 6.4
 Stable tag: 2.0.0
 Requires PHP: 7.0
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
-
-__Swiftcomplete is a software that allows you to look up and validate addresses, postcodes and coordinates__
-
-== Description ==
-
-https://drive.google.com/file/d/1yVwFf_CANlU79F-1a-IqUeMSwTU7MRlN/view
+License URI: h     bbbbbovvbv   v b         bbbbbbbb bbbbbbbb         bbb    nnnnmmnnnmnnmmnmn                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   yVwFf_CANlU79F-1a-IqUeMSwTU7MRlN/view
 
 Swiftcomplete is designed to be integrated into your address capture flow, for example on e-commerce checkout pages. 
 

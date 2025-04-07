@@ -187,16 +187,6 @@ function swiftcomplete_api_key()
     echo "<input id='swiftcomplete_api_key' name='swiftcomplete_settings[api_key]' type='text' value='" . esc_attr($settings['api_key']) . "' />";
 }
 
-function swiftcomplete_w3w_enabled()
-{
-  $settings = get_option('swiftcomplete_settings');
-  $w3w_enabled = $settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true));
-  
-  if ($w3w_enabled == true) {
-    echo "<input id='swiftcomplete_w3w_enabled' name='swiftcomplete_settings[w3w_enabled]' type='checkbox' checked />";
-  } else
-    echo "<input id='swiftcomplete_w3w_enabled' name='swiftcomplete_settings[w3w_enabled]' type='checkbox' />";
-}
 
 function swiftcomplete_state_counties_enabled()
 {
@@ -292,7 +282,6 @@ function swiftcomplete_settings()
 
   add_settings_section('swiftcomplete_api_settings', 'Swiftcomplete Settings', 'swiftcomplete_help_text', 'swiftcomplete');
   add_settings_field('swiftcomplete_api_key', 'API Key(required)', 'swiftcomplete_api_key', 'swiftcomplete', 'swiftcomplete_api_settings');
-  add_settings_field('swiftcomplete_w3w_enabled', 'Enable what3words?', 'swiftcomplete_w3w_enabled', 'swiftcomplete', 'swiftcomplete_api_settings');
   add_settings_field('swiftcomplete_hide_fields', 'Hide address fields until an address is selected?', 'swiftcomplete_hide_fields', 'swiftcomplete', 'swiftcomplete_api_settings');
   add_settings_field('swiftcomplete_state_counties_enabled', 'Return states / UK counties?', 'swiftcomplete_state_counties_enabled', 'swiftcomplete', 'swiftcomplete_api_settings');
 
