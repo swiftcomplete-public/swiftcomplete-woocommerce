@@ -30,7 +30,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                 if (searchFor && searchFor.indexOf('what3words') != -1)
                     addressFields.push({ container: document.getElementById('swiftcomplete_what3words_field'), field: document.getElementById("swiftcomplete_what3words"), format: "what3words" });
 
-                swiftcomplete.controls[type] = new swiftcomplete.PlaceAutoComplete({
+                swiftcomplete.controls[type] = new swiftcomplete.SwiftLookup({
                     key,
                     searchFor: searchFor,
                     field: autocompleteField,
@@ -46,7 +46,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
 
                 swiftcomplete.controls[type].biasTowards(biasTowards);
 
-                autocompleteField.addEventListener('swiftcomplete:place:selected', function (e) {
+                autocompleteField.addEventListener('swiftcomplete:swiftlookup:selected', function (e) {
                     for (var i = 0; i < addressFields.length; i++) {
                         addressFields[i].container.style.display = 'block';
 
@@ -57,7 +57,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                     }
                 }, false);
 
-                autocompleteField.addEventListener('swiftcomplete:place:manualentry', function (e) {
+                autocompleteField.addEventListener('swiftcomplete:swiftlookup:manualentry', function (e) {
                     for (var i = 0; i < addressFields.length; i++) {
                         document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = 'none';
                         addressFields[i].container.style.display = 'block';
@@ -112,7 +112,7 @@ function launchAdminAddressLookup(type, key, searchFor, hideFields, biasTowards,
 
                 addressFields.push({ field: document.getElementById('_' + type + '_postcode'), format: "POSTCODE" });
 
-                swiftcomplete.controls[type] = new swiftcomplete.PlaceAutoComplete({
+                swiftcomplete.controls[type] = new swiftcomplete.SwiftLookup({
                     key,
                     searchFor: searchFor,
                     field: autocompleteField,
@@ -194,7 +194,7 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
         if (searchFor && searchFor.indexOf('what3words') != -1)
             addressFields.push({ field: document.getElementById("swiftcomplete_what3words"), format: "what3words" });
 
-        swiftcomplete.controls[type] = new swiftcomplete.PlaceAutoComplete({
+        swiftcomplete.controls[type] = new swiftcomplete.SwiftLookup({
             key,
             searchFor: searchFor,
             field: autocompleteField,
@@ -211,7 +211,7 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
 
         swiftcomplete.controls[type].biasTowards(biasTowards);
 
-        autocompleteField.addEventListener('swiftcomplete:place:selected', function (e) {
+        autocompleteField.addEventListener('swiftcomplete:swiftlookup:selected', function (e) {
             if (document.getElementById(type + '-postcode'))
                 document.getElementById(type + '-postcode').dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -219,7 +219,7 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
                 addressFields[i].container.style.display = 'block';
         }, false);
 
-        autocompleteField.addEventListener('swiftcomplete:place:manualentry', function (e) {
+        autocompleteField.addEventListener('swiftcomplete:swiftlookup:manualentry', function (e) {
             for (var i = 0; i < addressFields.length; i++) {
                 document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = 'none';
                 addressFields[i].container.style.display = 'block';
