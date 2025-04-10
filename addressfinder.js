@@ -1,6 +1,6 @@
 function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty) {
     function initialiseSwiftcomplete() {
-        swiftcompletew3w.runWhenReady(function () {
+        swiftcomplete.runWhenReady(function () {
             var autocompleteField = document.getElementById('swiftcomplete_' + type + '_address_autocomplete');
 
             if (autocompleteField) {
@@ -30,7 +30,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                 if (searchFor && searchFor.indexOf('what3words') != -1)
                     addressFields.push({ container: document.getElementById('swiftcomplete_what3words_field'), field: document.getElementById("swiftcomplete_what3words"), format: "what3words" });
 
-                swiftcompletew3w.controls[type] = new swiftcompletew3w.PlaceAutoComplete({
+                swiftcomplete.controls[type] = new swiftcomplete.SwiftLookup({
                     key,
                     searchFor: searchFor,
                     field: autocompleteField,
@@ -44,9 +44,9 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                     }))
                 });
 
-                swiftcompletew3w.controls[type].biasTowards(biasTowards);
+                swiftcomplete.controls[type].biasTowards(biasTowards);
 
-                autocompleteField.addEventListener('swiftcomplete:place:selected', function (e) {
+                autocompleteField.addEventListener('swiftcomplete:swiftlookup:selected', function (e) {
                     for (var i = 0; i < addressFields.length; i++) {
                         addressFields[i].container.style.display = 'block';
 
@@ -57,7 +57,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                     }
                 }, false);
 
-                autocompleteField.addEventListener('swiftcomplete:place:manualentry', function (e) {
+                autocompleteField.addEventListener('swiftcomplete:swiftlookup:manualentry', function (e) {
                     for (var i = 0; i < addressFields.length; i++) {
                         document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = 'none';
                         addressFields[i].container.style.display = 'block';
@@ -85,7 +85,7 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
 
 function launchAdminAddressLookup(type, key, searchFor, hideFields, biasTowards, placeholder, returnStateCounty) {
     function initialiseSwiftcomplete() {
-        swiftcompletew3w.runWhenReady(function () {
+        swiftcomplete.runWhenReady(function () {
             var autocompleteField = document.getElementById('swiftcomplete_' + type + '_address_autocomplete');
 
             if (autocompleteField) {
@@ -112,7 +112,7 @@ function launchAdminAddressLookup(type, key, searchFor, hideFields, biasTowards,
 
                 addressFields.push({ field: document.getElementById('_' + type + '_postcode'), format: "POSTCODE" });
 
-                swiftcompletew3w.controls[type] = new swiftcompletew3w.PlaceAutoComplete({
+                swiftcomplete.controls[type] = new swiftcomplete.SwiftLookup({
                     key,
                     searchFor: searchFor,
                     field: autocompleteField,
@@ -126,15 +126,15 @@ function launchAdminAddressLookup(type, key, searchFor, hideFields, biasTowards,
                     }))
                 });
 
-                swiftcompletew3w.controls[type].biasTowards(biasTowards);
+                swiftcomplete.controls[type].biasTowards(biasTowards);
 
                 jQuery(function ($) {
 
-                    swiftcompletew3w.controls[type].setCountries($('select[name=_' + type + '_country]').val());
+                    swiftcomplete.controls[type].setCountries($('select[name=_' + type + '_country]').val());
 
                     $(document.body).on('change', 'select[name=_' + type + '_country]', function () {
                         console.log($('select[name=_' + type + '_country]').val());
-                        swiftcompletew3w.controls[type].setCountries($('select[name=_' + type + '_country]').val().toLowerCase());
+                        swiftcomplete.controls[type].setCountries($('select[name=_' + type + '_country]').val().toLowerCase());
                     });
                 });
             }
@@ -194,7 +194,7 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
         if (searchFor && searchFor.indexOf('what3words') != -1)
             addressFields.push({ field: document.getElementById("swiftcomplete_what3words"), format: "what3words" });
 
-        swiftcompletew3w.controls[type] = new swiftcompletew3w.PlaceAutoComplete({
+        swiftcomplete.controls[type] = new swiftcomplete.SwiftLookup({
             key,
             searchFor: searchFor,
             field: autocompleteField,
@@ -209,9 +209,9 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
             }))
         });
 
-        swiftcompletew3w.controls[type].biasTowards(biasTowards);
+        swiftcomplete.controls[type].biasTowards(biasTowards);
 
-        autocompleteField.addEventListener('swiftcomplete:place:selected', function (e) {
+        autocompleteField.addEventListener('swiftcomplete:swiftlookup:selected', function (e) {
             if (document.getElementById(type + '-postcode'))
                 document.getElementById(type + '-postcode').dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -219,7 +219,7 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
                 addressFields[i].container.style.display = 'block';
         }, false);
 
-        autocompleteField.addEventListener('swiftcomplete:place:manualentry', function (e) {
+        autocompleteField.addEventListener('swiftcomplete:swiftlookup:manualentry', function (e) {
             for (var i = 0; i < addressFields.length; i++) {
                 document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = 'none';
                 addressFields[i].container.style.display = 'block';
@@ -240,11 +240,11 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
 
 function showOrHideFields(type, addressFields, hideFields, countryCode, isBlocks) {
     if (countryCode)
-        swiftcompletew3w.controls[type].setCountries(countryCode);
+        swiftcomplete.controls[type].setCountries(countryCode);
 
     var fieldsVisible = true;
 
-    if (hideFields && swiftcompletew3w.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode)) {
+    if (hideFields && swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode)) {
         var addressValuesExist = false;
 
         try {
@@ -271,5 +271,5 @@ function showOrHideFields(type, addressFields, hideFields, countryCode, isBlocks
     }
 
     if (document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field'))
-        document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = ((!countryCode || swiftcompletew3w.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode)) ? 'block' : 'none');
+        document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = ((!countryCode || swiftcomplete.controls[type].hasAddressAutocompleteCoverageForCountry(countryCode)) ? 'block' : 'none');
 }

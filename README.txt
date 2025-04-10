@@ -1,12 +1,12 @@
-=== Swiftcomplete for WooCommerce ===
+=== SwiftLookup for WooCommerce ===
 Contributors: Swiftcomplete
-Tags: Swiftcomplete, address validator, what3words address, searchbox, search, address, validation, autosuggest, w3w
+Tags: Swiftcomplete, address validator, what3words address, searchbox, search, address, validation, autosuggest, w3w, capture, address lookup, autocomplete, verification, address collection, address finder, cleansing, address standardising
 Requires at least: 4.7
 Tested up to: 6.4
-Stable tag: 2.0.0
+Stable tag: 1.0.8
 Requires PHP: 7.0
 License: GPLv2 or later
-License URI: h     bbbbbovvbv   v b         bbbbbbbb bbbbbbbb         bbb    nnnnmmnnnmnnmmnmn                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   yVwFf_CANlU79F-1a-IqUeMSwTU7MRlN/view
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Swiftcomplete is designed to be integrated into your address capture flow, for example on e-commerce checkout pages. 
 
@@ -15,70 +15,57 @@ Swiftcomplete is designed to be integrated into your address capture flow, for e
 * Fast: Operates with low latency
 * Comprehensive: Combines high quality geospatial databases and multi*residence addresses for best possible address matching.
 * Easy to use: Simple, effective user interface
-* Cost-effective: 3p per address flat rate (Bespoke enterprise solutions available)  
+* Cost-effective: Credit packs from £10 (3p per address) (Bespoke enterprise solutions available)  
 * what3words entry: included as standard
 
 == Installation ==
 
 = WordPress Installation (recommended) =
 
-You can install Swiftcomplete Address Autocomplete Plugin plugin through the WordPress plugins page in your WordPress admin panel.
+You can install SwiftLookup plugin through the WordPress plugins page in your WordPress admin panel.
 
 1. Navigate to the _Plugins > Add New_ page
-2. Search for "Swiftcomplete"
+2. Search for "SwiftLookup"
 3. Click the _Install Now_ button.
 4. Once installed, you can activate the plugin on the _Plugins_ page.
 
 = Manual Installation =
 
-You can download the Swiftcomplete Address Autocomplete plugin from the [WordPress Plugins site](https://wordpress.org/plugins/swiftcomplete-address-autocomplete/#installation).
+You can download the SwiftLookup plugin from the [WordPress Plugins site](https://wordpress.org/plugins/swiftlookup/#installation).
 
-1. Download the Swiftcomplete Address Autocomplete plugin from the WordPress Plugins site
+1. Download the SwiftLookup plugin from the WordPress Plugins site
 2. Once you have downloaded the zipped plugin, you can upload it to your WordPress installation by navigating to _Plugins > Add New_, click the _Upload Plugin_ button
 3. Select the zipped plugin file and click _Install Now_
 4. Once installed, you can activate the plugin on the _Plugins_ page.
 
-
 = More about what3words =
 
 Find our full developer documentation here:
-[https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-address-autocomplete](https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-address-autocomplete-1a466db17f3b8018bc4ce65f85f6c852)
+[https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-plugin-for-SwiftLookup](https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-plugin-for-SwiftLookup-1a466db17f3b8018bc4ce65f85f6c852)
 
 You can learn more about our privacy policy here:
 [https://www.swiftcomplete.com/privacy/](https://www.swiftcomplete.com/privacy/)
 
 = Get in touch with us =
 
-Have any questions? Want to learn more about how the Swiftcomplete Address Autocomplete plugin works? Get in touch with us at [support@swiftcomplete.com](mailto:support@swiftcomplete.com).
-
-== Frequently Asked Questions ==
-
-= A question that someone might have =
-
-An answer to that question.
-
-= What about foo bar? =
-
-Answer to foo bar dilemma.
+Have any questions? Want to learn more about how the SwiftLookup plugin works? Get in touch with us at [support@swiftcomplete.com](mailto:support@swiftcomplete.com).
 
 == Screenshots ==
 
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Screenshots are stored in the /assets directory.
-2. This is the second screen shot
+1. SwiftLookup
+2. SwiftLookup Address flow
+3. SwiftLookup - Input Flow - Postcode
+4. SwiftLookup - Input Flow - Street Address
+5. SwiftLookup - Input Flow - what3words address
 
 == Changelog ==
 
-= 1.0 =
-* A change since the previous version.
-* Another change.
+= 1.0.8 =
+* Update the latest swiftlookup.js
 
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
+= 1.0.7 =
+* Added check for address coverage when showing or hiding fields
 
-== Upgrade Notice ==
+= 1.0.6 =
+* Remove invalid field validation on successful address population
 
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
-
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.

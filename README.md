@@ -1,8 +1,8 @@
-![Swiftcomplete Address Autocomplete](./assets/swiftcomplete_hero.jpg)
+![SwiftLookup](./assets/screenshot-1.jpg)
 
 
-# Swiftcomplete Address Autocomplete Plugin for WooCommerce
-The Swiftcomplete Address Autocomplete Plugin enhances WooCommerce checkout by providing fast and accurate address and what3words autocomplete, improving user experience and reducing delivery errors.
+# SwiftLookup for WooCommerce
+The SwiftLookup Plugin enhances WooCommerce checkout by providing fast and accurate address and what3words autocomplete, improving user experience and reducing delivery errors.
 
 ## What is Swiftcomplete?
 Swiftcomplete is a software that allows you to look up and validate addresses, postcodes and coordinates. It is designed to be integrated into your address capture flow, for example on e-commerce checkout pages. Swiftcomplete is uniquely designed to return a valid address as fast as possible.
@@ -44,13 +44,13 @@ Improves quality of address data
     
 - what3words entry: included as standard
 
-![Swiftcomplete Address Autocomplete flows](./assets/swiftcomplete_flows.png)
+![SwiftLookup flows](./assets/screenshot-2.png)
     
 
 ## More about what3words
 
 Find our full developer documentation here:
-[https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-address-autocomplete](https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-address-autocomplete-1a466db17f3b8018bc4ce65f85f6c852)
+[https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-plugin-for-SwiftLookup](https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-plugin-for-SwiftLookup-1a466db17f3b8018bc4ce65f85f6c852)
 
 You can learn more about our privacy policy here:
 [https://www.swiftcomplete.com/privacy/](https://www.swiftcomplete.com/privacy/)
@@ -58,4 +58,4 @@ You can learn more about our privacy policy here:
 
 ## Get in touch with us
 
-Have any questions? Want to learn more about how the Swiftcomplete Address Autocomplete plugin works? Get in touch with us at [support@swiftcomplete.com](mailto:support@swiftcomplete.com).
+Have any questions? Want to learn more about how the SwiftLookup plugin works? Get in touch with us at [support@swiftcomplete.com](mailto:support@swiftcomplete.com).
