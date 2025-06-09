@@ -90,12 +90,12 @@ function override_default_address_fields($address_fields)
   if ($settings !== false && array_key_exists('billing_placeholder', $settings) && strlen($settings['billing_placeholder']) > 0)
     $billing_placeholder = esc_attr($settings['billing_placeholder']);
   else
-    $billing_placeholder = $w3w_enabled == true ? 'Type your address, postcode or what3words...' : 'Type your address or postcode...';
+    $billing_placeholder = $w3w_enabled == true ? 'Type your address, what3words or postcode...' : 'Type your address or postcode...';
 
   if ($settings !== false && array_key_exists('shipping_placeholder', $settings) && strlen($settings['shipping_placeholder']) > 0)
     $shipping_placeholder = esc_attr($settings['shipping_placeholder']);
   else
-    $shipping_placeholder = $w3w_enabled == true ? 'Type your address, postcode or what3words...' : 'Type your address or postcode...';
+    $shipping_placeholder = $w3w_enabled == true ? 'Type your address, what3words or postcode...' : 'Type your address or postcode...';
 
   $billing_label = $settings !== false && array_key_exists('billing_label', $settings) && strlen($settings['billing_label']) > 0 ? esc_attr($settings['billing_label']) : 'Address Finder';
   $shipping_label = $settings !== false && array_key_exists('shipping_label', $settings) && strlen($settings['shipping_label']) > 0 ? esc_attr($settings['shipping_label']) : 'Address Finder';
