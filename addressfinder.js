@@ -48,7 +48,8 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
 
                 autocompleteField.addEventListener('swiftcomplete:swiftlookup:selected', function (e) {
                     for (var i = 0; i < addressFields.length; i++) {
-                        addressFields[i].container.style.display = 'block';
+                        if (addressFields[i].container)
+                            addressFields[i].container.style.display = 'block';
 
                         if (addressFields[i].container && addressFields[i].container.classList && addressFields[i].container.classList.contains('validate-required')) {
                             addressFields[i].container.classList.remove('woocommerce-invalid', 'woocommerce-invalid-required-field');
@@ -60,7 +61,9 @@ function launchAddressLookup(type, key, searchFor, hideFields, biasTowards, plac
                 autocompleteField.addEventListener('swiftcomplete:swiftlookup:manualentry', function (e) {
                     for (var i = 0; i < addressFields.length; i++) {
                         document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = 'none';
-                        addressFields[i].container.style.display = 'block';
+
+                        if (addressFields[i].container)
+                            addressFields[i].container.style.display = 'block';
                     }
                 }, false);
 
@@ -216,13 +219,16 @@ function initialiseSwiftcompleteBlocks(type, key, searchFor, hideFields, biasTow
                 document.getElementById(type + '-postcode').dispatchEvent(new Event('input', { bubbles: true }));
 
             for (var i = 0; i < addressFields.length; i++)
-                addressFields[i].container.style.display = 'block';
+                if (addressFields[i].container)
+                    addressFields[i].container.style.display = 'block';
         }, false);
 
         autocompleteField.addEventListener('swiftcomplete:swiftlookup:manualentry', function (e) {
             for (var i = 0; i < addressFields.length; i++) {
                 document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field').style.display = 'none';
-                addressFields[i].container.style.display = 'block';
+
+                if (addressFields[i].container)
+                    addressFields[i].container.style.display = 'block';
             }
         }, false);
 
@@ -267,7 +273,8 @@ function showOrHideFields(type, addressFields, hideFields, countryCode, isBlocks
             fieldsVisible = false;
 
         for (var i = 0; i < addressFields.length; i++)
-            addressFields[i].container.style.display = (addressFields[i].field.id == 'swiftcomplete_what3words' || fieldsVisible) ? 'block' : 'none';
+            if (addressFields[i].container)
+                addressFields[i].container.style.display = (addressFields[i].field.id == 'swiftcomplete_what3words' || fieldsVisible) ? 'block' : 'none';
     }
 
     if (document.getElementById('swiftcomplete_' + type + '_address_autocomplete_field'))
