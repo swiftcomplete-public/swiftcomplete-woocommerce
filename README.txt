@@ -3,7 +3,7 @@ Contributors: Swiftcomplete
 Tags: Swiftcomplete, address validator, what3words address, searchbox, search, address, validation, autosuggest, w3w, capture, address lookup, autocomplete, verification, address collection, address finder, cleansing, address standardising
 Requires at least: 4.7
 Tested up to: 6.4
-Stable tag: 1.0.9
+Stable tag: 1.0.10
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,9 @@ Have any questions? Want to learn more about how the SwiftLookup plugin works? G
 5. SwiftLookup - Input Flow - what3words address
 
 == Changelog ==
+
+= 1.0.10 =
+* Fixed issue where an address couldn't be selected if certain fields did not exist
 
 = 1.0.9 =
 * Fixed issue if what3words is disabled
