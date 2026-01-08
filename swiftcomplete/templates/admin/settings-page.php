@@ -5,9 +5,7 @@
  * @package Swiftcomplete
  */
 
-if (!defined('ABSPATH')) {
-    exit;
-}
+defined('ABSPATH') || exit;
 ?>
 <form action="options.php" method="post">
     <?php
@@ -16,5 +14,3 @@ if (!defined('ABSPATH')) {
     ?>
     <input name="submit" class="button button-primary" type="submit" value="<?php esc_attr_e('Save'); ?>" />
 </form>
-
-

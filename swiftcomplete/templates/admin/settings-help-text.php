@@ -5,9 +5,7 @@
  * @package Swiftcomplete
  */
 
-if (!defined('ABSPATH')) {
-    exit;
-}
+defined('ABSPATH') || exit;
 ?>
 <script type="text/javascript">
     !function (e, t, c) {

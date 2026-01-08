@@ -5,10 +5,7 @@
  * @package Swiftcomplete
  */
 
-if (!defined('ABSPATH')) {
-    exit;
-}
+defined('ABSPATH') || exit;
 ?>
-<p class='swiftcomplete-text-sm'>Customise the address search field label and placeholder text (<b>optional</b> - leave fields blank for default text)</p>
-
-
+<p class='swiftcomplete-text-sm'>Customise the address search field label and placeholder text (<b>optional</b> - leave
+    fields blank for default text)</p>

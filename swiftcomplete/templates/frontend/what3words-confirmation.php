@@ -7,10 +7,6 @@
  * @var string $what3words What3words value
  */
 
-if (!defined('ABSPATH')) {
-    exit;
-}
+defined('ABSPATH') || exit;
 ?>
 <p><strong>what3words:</strong> <?php echo esc_html($what3words); ?></p>
-
-
