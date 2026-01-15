@@ -85,8 +85,13 @@ class SwiftcompleteWhat3Words
             return;
         }
 
+        $nonce = isset($_POST['woocommerce-process-checkout-nonce']) ? wp_unslash($_POST['woocommerce-process-checkout-nonce']) : '';
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'woocommerce-process_checkout')) {
+            return;
+        }
+
         if (isset($_POST['swiftcomplete_what3words']) && !empty($_POST['swiftcomplete_what3words'])) {
-            update_post_meta($order_id, 'swiftcomplete_what3words', sanitize_text_field($_POST['swiftcomplete_what3words']));
+            update_post_meta($order_id, 'swiftcomplete_what3words', sanitize_text_field(wp_unslash($_POST['swiftcomplete_what3words'])));
         }
     }
 
