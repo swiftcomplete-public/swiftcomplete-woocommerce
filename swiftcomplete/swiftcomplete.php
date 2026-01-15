@@ -93,6 +93,7 @@ if (function_exists('register_activation_hook')) {
 }
 
 // Initialize plugin only if WordPress is fully loaded
+// Priority 10 ensures WooCommerce has had a chance to load first
 if (function_exists('add_action')) {
-  add_action('plugins_loaded', 'swiftcomplete_init', 5);
+  add_action('plugins_loaded', 'swiftcomplete_init', 10);
 }

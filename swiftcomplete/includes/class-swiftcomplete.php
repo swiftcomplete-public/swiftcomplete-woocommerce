@@ -50,14 +50,15 @@ class Swiftcomplete
 
     /**
      * Initialize plugin
+     * Note: This is called from plugins_loaded hook, so we initialize directly
+     * instead of adding more plugins_loaded hooks (which would have timing issues)
      */
     private function init()
     {
-        // Check if WooCommerce is active
-        add_action('plugins_loaded', array($this, 'check_woocommerce'), 5);
-
-        // Initialize plugin components
-        add_action('plugins_loaded', array($this, 'init_components'), 10);
+        // Initialize components directly since we're already in plugins_loaded
+        // The main plugin file hooks us at plugins_loaded priority 10, ensuring
+        // WooCommerce has had a chance to load first
+        $this->init_components();
     }
 
     /**
@@ -74,10 +75,16 @@ class Swiftcomplete
 
     /**
      * Display notice if WooCommerce is missing
+     * Note: We output HTML directly here instead of using SwiftcompleteTemplateLoader
+     * because this notice is shown BEFORE dependencies are loaded (when WooCommerce is missing)
      */
     public function woocommerce_missing_notice()
     {
-        SwiftcompleteTemplateLoader::load_template('admin/woocommerce-missing-notice');
+        ?>
+        <div class="error">
+            <p><strong>SwiftLookup for WooCommerce</strong> requires WooCommerce to be installed and active.</p>
+        </div>
+        <?php
     }
 
     /**

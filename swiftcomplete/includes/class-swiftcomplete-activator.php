@@ -31,7 +31,7 @@ class SwiftcompleteActivator
       // Check PHP version
       if (version_compare(PHP_VERSION, '7.2', '<')) {
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
-        wp_die(
+        self::safe_wp_die(
           sprintf(
             __('SwiftLookup for WooCommerce requires PHP 7.2 or higher. You are running PHP %s. Please upgrade PHP and try again.', 'swiftcomplete'),
             PHP_VERSION
@@ -45,7 +45,7 @@ class SwiftcompleteActivator
       global $wp_version;
       if (version_compare($wp_version, '5.0', '<')) {
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
-        wp_die(
+        self::safe_wp_die(
           sprintf(
             __('SwiftLookup for WooCommerce requires WordPress 5.0 or higher. You are running WordPress %s. Please upgrade WordPress and try again.', 'swiftcomplete'),
             $wp_version
@@ -58,7 +58,7 @@ class SwiftcompleteActivator
       // Check if WooCommerce is active
       if (!class_exists('WooCommerce')) {
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
-        wp_die(
+        self::safe_wp_die(
           __('SwiftLookup for WooCommerce requires WooCommerce to be installed and active. Please install and activate WooCommerce first.', 'swiftcomplete'),
           __('Plugin Activation Error', 'swiftcomplete'),
           array('back_link' => true)
@@ -80,7 +80,7 @@ class SwiftcompleteActivator
           );
           self::log_error('ACTIVATION_ERROR', $error_msg);
           deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
-          wp_die(
+          self::safe_wp_die(
             $error_msg,
             __('Plugin Activation Error', 'swiftcomplete'),
             array('back_link' => true)
@@ -101,7 +101,7 @@ class SwiftcompleteActivator
         $error_msg = __('Failed to load Swiftcomplete main class. Plugin may be corrupted.', 'swiftcomplete');
         self::log_error('ACTIVATION_ERROR', $error_msg);
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
-        wp_die(
+        self::safe_wp_die(
           $error_msg,
           __('Plugin Activation Error', 'swiftcomplete'),
           array('back_link' => true)
@@ -122,7 +122,7 @@ class SwiftcompleteActivator
       );
       self::log_error('ACTIVATION_EXCEPTION', $error_msg . ' | Trace: ' . $e->getTraceAsString());
       deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
-      wp_die(
+      self::safe_wp_die(
         $error_msg,
         __('Plugin Activation Error', 'swiftcomplete'),
         array('back_link' => true)
@@ -134,15 +134,15 @@ class SwiftcompleteActivator
       );
       self::log_error('ACTIVATION_FATAL', $error_msg . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine());
       deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
-      wp_die(
+      self::safe_wp_die(
         $error_msg,
         __('Plugin Activation Fatal Error', 'swiftcomplete'),
         array('back_link' => true)
       );
-    } finally {
-      // Restore error handler
-      restore_error_handler();
     }
+
+    // Restore error handler on successful activation
+    restore_error_handler();
   }
 
   /**
@@ -199,6 +199,20 @@ class SwiftcompleteActivator
         self::log_error('ACTIVATION_FATAL_SHUTDOWN', $error_msg);
       }
     }
+  }
+
+  /**
+   * Safely die with error message, ensuring error handler is restored first
+   *
+   * @param string $message Error message to display.
+   * @param string $title   Error title.
+   * @param array  $args    Additional arguments for wp_die.
+   */
+  private static function safe_wp_die($message, $title, $args = array())
+  {
+    // Restore error handler before dying to prevent leaving PHP with custom handler
+    restore_error_handler();
+    wp_die($message, $title, $args);
   }
 
   /**
