@@ -96,4 +96,29 @@ if (function_exists('register_activation_hook')) {
 // Priority 10 ensures WooCommerce has had a chance to load first
 if (function_exists('add_action')) {
   add_action('plugins_loaded', 'swiftcomplete_init', 10);
+
+  // Declare compatibility with WooCommerce features
+  add_action('before_woocommerce_init', 'swiftcomplete_declare_wc_compatibility');
+}
+
+/**
+ * Declare compatibility with WooCommerce features (HPOS, Blocks, etc.)
+ */
+function swiftcomplete_declare_wc_compatibility()
+{
+  if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+    // Declare HPOS (High-Performance Order Storage) compatibility
+    \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+      'custom_order_tables',
+      SWIFTCOMPLETE_PLUGIN_FILE,
+      true
+    );
+
+    // Declare Cart and Checkout Blocks compatibility
+    \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+      'cart_checkout_blocks',
+      SWIFTCOMPLETE_PLUGIN_FILE,
+      true
+    );
+  }
 }
