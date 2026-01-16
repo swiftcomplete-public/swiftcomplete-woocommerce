@@ -73,11 +73,7 @@ class Swiftcomplete
      */
     public function woocommerce_missing_notice()
     {
-        ?>
-        <div class="error">
-            <p><strong>SwiftLookup for WooCommerce</strong> requires WooCommerce to be installed and active.</p>
-        </div>
-        <?php
+        swiftcomplete_load_partial('admin/woocommerce-missing-notice');
     }
 
     /**

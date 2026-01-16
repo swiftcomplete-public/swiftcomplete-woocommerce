@@ -102,12 +102,10 @@ class SwiftcompleteWhat3Words
      */
     public function display_w3w_on_confirmation($order)
     {
-        $order_id = $order->get_id();
-        $what3words = get_post_meta($order_id, 'swiftcomplete_what3words', true);
+        $what3words = get_post_meta($order->get_id(), 'swiftcomplete_what3words', true);
 
         if ($what3words) {
             swiftcomplete_load_partial('frontend/what3words-confirmation', array(
-                'order_id' => $order_id,
                 'what3words' => $what3words,
             ));
         }
@@ -138,10 +136,10 @@ class SwiftcompleteWhat3Words
      */
     public function add_w3w_to_order_preview($data, $order)
     {
-        if ($order->get_meta('swiftcomplete_what3words')) {
-            $data['formatted_shipping_address'] = $data['formatted_shipping_address'] . '<br />' . esc_attr($order->get_meta('swiftcomplete_what3words')) . '<br />';
+        $what3words = get_post_meta($order->get_id(), 'swiftcomplete_what3words', true);
+        if ($what3words) {
+            $data['formatted_shipping_address'] = $data['formatted_shipping_address'] . '<br />' . esc_attr($what3words) . '<br />';
         }
-
         return $data;
     }
 }

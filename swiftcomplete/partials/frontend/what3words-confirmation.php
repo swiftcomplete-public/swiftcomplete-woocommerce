@@ -3,7 +3,6 @@
  * What3words confirmation template
  *
  * @package Swiftcomplete
- * @var int $order_id Order ID
  * @var string $what3words What3words value
  */
 
