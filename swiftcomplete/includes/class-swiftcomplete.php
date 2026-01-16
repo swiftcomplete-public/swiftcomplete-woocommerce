@@ -50,14 +50,9 @@ class Swiftcomplete
 
     /**
      * Initialize plugin
-     * Note: This is called from plugins_loaded hook, so we initialize directly
-     * instead of adding more plugins_loaded hooks (which would have timing issues)
      */
     private function init()
     {
-        // Initialize components directly since we're already in plugins_loaded
-        // The main plugin file hooks us at plugins_loaded priority 10, ensuring
-        // WooCommerce has had a chance to load first
         $this->init_components();
     }
 
@@ -75,8 +70,6 @@ class Swiftcomplete
 
     /**
      * Display notice if WooCommerce is missing
-     * Note: We output HTML directly here instead of using SwiftcompleteTemplateLoader
-     * because this notice is shown BEFORE dependencies are loaded (when WooCommerce is missing)
      */
     public function woocommerce_missing_notice()
     {
@@ -130,12 +123,6 @@ class Swiftcomplete
     private function load_dependencies()
     {
         $includes_dir = plugin_dir_path(__FILE__);
-
-        // Load template loader first
-        $template_loader = $includes_dir . 'class-swiftcomplete-template-loader.php';
-        if (file_exists($template_loader)) {
-            require_once $template_loader;
-        }
 
         $classes = array(
             'class-swiftcomplete-settings.php',

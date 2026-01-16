@@ -66,7 +66,7 @@ function swiftcomplete_init()
 {
   // Safety check: Ensure class was loaded
   if (!class_exists('Swiftcomplete')) {
-    return;
+    return null;
   }
 
   try {
@@ -76,7 +76,7 @@ function swiftcomplete_init()
     if (function_exists('error_log')) {
       error_log('Swiftcomplete plugin error: ' . $e->getMessage());
     }
-    return;
+    return null;
   }
 }
 
@@ -104,21 +104,50 @@ if (function_exists('add_action')) {
 /**
  * Declare compatibility with WooCommerce features (HPOS, Blocks, etc.)
  */
-function swiftcomplete_declare_wc_compatibility()
-{
-  if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
-    // Declare HPOS (High-Performance Order Storage) compatibility
-    \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
-      'custom_order_tables',
-      SWIFTCOMPLETE_PLUGIN_FILE,
-      true
-    );
+if (!function_exists('swiftcomplete_declare_wc_compatibility')) {
+  function swiftcomplete_declare_wc_compatibility()
+  {
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+      // Declare HPOS (High-Performance Order Storage) compatibility
+      \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+        'custom_order_tables',
+        SWIFTCOMPLETE_PLUGIN_FILE,
+        true
+      );
 
-    // Declare Cart and Checkout Blocks compatibility
-    \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
-      'cart_checkout_blocks',
-      SWIFTCOMPLETE_PLUGIN_FILE,
-      true
-    );
+      // Declare Cart and Checkout Blocks compatibility
+      \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+        'cart_checkout_blocks',
+        SWIFTCOMPLETE_PLUGIN_FILE,
+        true
+      );
+    }
+  }
+}
+
+/**
+ * Load a partial
+ *
+ * @param string $partial Partial name (e.g., 'admin/settings-page').
+ * @param array  $args    Variables to pass to partial.
+ */
+if (!function_exists('swiftcomplete_load_partial')) {
+  function swiftcomplete_load_partial($partial, $args = array())
+  {
+    $partial_path = SWIFTCOMPLETE_PLUGIN_DIR . 'partials/' . $partial . '.php';
+
+    if (!file_exists($partial_path)) {
+      if (function_exists('error_log')) {
+        error_log('Swiftcomplete partial not found: ' . $partial_path);
+      }
+      return;
+    }
+
+    // Extract variables for partial
+    if (!empty($args)) {
+      extract($args);
+    }
+
+    include $partial_path;
   }
 }

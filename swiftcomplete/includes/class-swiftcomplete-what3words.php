@@ -44,7 +44,7 @@ class SwiftcompleteWhat3Words
         }
 
         $settings = get_option('swiftcomplete_settings');
-        $w3w_enabled = $settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true));
+        $w3w_enabled = $settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] === true));
 
         if ($w3w_enabled) {
             add_action('woocommerce_after_order_notes', array($this, 'display_w3w_field'));
@@ -106,7 +106,7 @@ class SwiftcompleteWhat3Words
         $what3words = get_post_meta($order_id, 'swiftcomplete_what3words', true);
 
         if ($what3words) {
-            SwiftcompleteTemplateLoader::load_template('frontend/what3words-confirmation', array(
+            swiftcomplete_load_partial('frontend/what3words-confirmation', array(
                 'order_id' => $order_id,
                 'what3words' => $what3words,
             ));
@@ -123,7 +123,7 @@ class SwiftcompleteWhat3Words
         $what3words = get_post_meta($order->get_id(), 'swiftcomplete_what3words', true);
 
         if ($what3words) {
-            SwiftcompleteTemplateLoader::load_template('frontend/what3words-order', array(
+            swiftcomplete_load_partial('frontend/what3words-order', array(
                 'what3words' => $what3words,
             ));
         }

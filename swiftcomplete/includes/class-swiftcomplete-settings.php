@@ -115,7 +115,7 @@ class SwiftcompleteSettings
      */
     public function render_settings_page()
     {
-        SwiftcompleteTemplateLoader::load_template('admin/settings-page');
+        swiftcomplete_load_partial('admin/settings-page');
     }
 
     /**
@@ -123,7 +123,7 @@ class SwiftcompleteSettings
      */
     public function render_help_text()
     {
-        SwiftcompleteTemplateLoader::load_template('admin/settings-help-text');
+        swiftcomplete_load_partial('admin/settings-help-text');
     }
 
     /**
@@ -131,7 +131,7 @@ class SwiftcompleteSettings
      */
     public function render_country_header()
     {
-        SwiftcompleteTemplateLoader::load_template('admin/country-header');
+        swiftcomplete_load_partial('admin/country-header');
     }
 
     /**
@@ -139,7 +139,7 @@ class SwiftcompleteSettings
      */
     public function render_text_header()
     {
-        SwiftcompleteTemplateLoader::load_template('admin/text-header');
+        swiftcomplete_load_partial('admin/text-header');
     }
 
     /**
