@@ -22,6 +22,7 @@ services:
       WORDPRESS_DB_PASSWORD: wordpress
       WORDPRESS_DB_HOST: mysql:3306
       WORDPRESS_DEBUG: 1
+      WORDPRESS_DEBUG_LOG: 1
       WORDPRESS_CONFIG_EXTRA: |
         define('DISABLE_WP_CRON', 'true');
     volumes:
@@ -57,8 +58,8 @@ services:
       WORDPRESS_WEBSITE_URL: 'http://localhost:8081'
       WORDPRESS_WEBSITE_URL_WITHOUT_HTTP: 'localhost:8081'
       WORDPRESS_WEBSITE_POST_URL_STRUCTURE: '/%year%/%monthnum%/%day%/%postname%/'
-      WORDPRESS_ADMIN_USER: 'swiftcomplete'
-      WORDPRESS_ADMIN_PASSWORD: 'swiftcomplete'
+      WORDPRESS_ADMIN_USER: 'admin'
+      WORDPRESS_ADMIN_PASSWORD: 'admin'
       WORDPRESS_ADMIN_EMAIL: 'developer@what3words.com'
       WORDPRESS_THEME: $WORDPRESS_THEME
 

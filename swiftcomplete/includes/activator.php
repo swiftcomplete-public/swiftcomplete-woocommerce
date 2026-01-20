@@ -5,12 +5,18 @@
  * @package Swiftcomplete
  */
 
+namespace Swiftcomplete;
+
 defined('ABSPATH') || exit;
+
+if (!defined('SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE')) {
+  define('SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE', 'Plugin Activation Error');
+}
 
 /**
  * Swiftcomplete Activator class
  */
-class SwiftcompleteActivator
+class Activator
 {
 
   /**
@@ -23,53 +29,57 @@ class SwiftcompleteActivator
       define('SWIFTCOMPLETE_ACTIVATING', true);
     }
 
-    // Set up error handler to catch fatal errors
-    set_error_handler(array(__CLASS__, 'error_handler'));
+    // Set up shutdown handler to catch fatal errors (parse errors, etc. that try-catch can't catch)
     register_shutdown_function(array(__CLASS__, 'shutdown_handler'));
 
     try {
       // Check PHP version
-      if (version_compare(PHP_VERSION, '7.2', '<')) {
+      if (version_compare(PHP_VERSION, '7.4', '<')) {
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
           sprintf(
-            __('SwiftLookup for WooCommerce requires PHP 7.2 or higher. You are running PHP %s. Please upgrade PHP and try again.', 'swiftcomplete'),
+            __('Swiftcomplete for WooCommerce requires PHP 7.4 or higher. You are running PHP %s. Please upgrade PHP and try again.', 'swiftcomplete'),
             PHP_VERSION
           ),
-          __('Plugin Activation Error', 'swiftcomplete'),
+          __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
           array('back_link' => true)
         );
       }
 
       // Check WordPress version
       global $wp_version;
-      if (version_compare($wp_version, '5.0', '<')) {
+      if (version_compare($wp_version, '5.7.2', '<')) {
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
           sprintf(
-            __('SwiftLookup for WooCommerce requires WordPress 5.0 or higher. You are running WordPress %s. Please upgrade WordPress and try again.', 'swiftcomplete'),
+            __('Swiftcomplete for WooCommerce requires WordPress 5.7.2 or higher. You are running WordPress %s. Please upgrade WordPress and try again.', 'swiftcomplete'),
             $wp_version
           ),
-          __('Plugin Activation Error', 'swiftcomplete'),
+          __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
           array('back_link' => true)
         );
       }
 
       // Check if WooCommerce is active
       if (!class_exists('WooCommerce')) {
+        self::log_error('ACTIVATION_ERROR', 'WooCommerce is not active');
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
-          __('SwiftLookup for WooCommerce requires WooCommerce to be installed and active. Please install and activate WooCommerce first.', 'swiftcomplete'),
-          __('Plugin Activation Error', 'swiftcomplete'),
+          __('Swiftcomplete for WooCommerce requires WooCommerce to be installed and active. Please install and activate WooCommerce first.', 'swiftcomplete'),
+          __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
           array('back_link' => true)
         );
       }
 
-      // Check if required files exist
+      // Check if required files exist (new architecture with namespaces)
       $required_files = array(
-        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/class-swiftcomplete.php',
-        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/class-swiftcomplete-settings.php',
-        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/class-swiftcomplete-checkout.php',
+        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/autoloader.php',
+        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/Core/Plugin.php',
+        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/Core/ServiceContainer.php',
+        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/Core/HookManager.php',
+        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/Checkout/CheckoutHandler.php',
+        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/Order/OrderDisplayManager.php',
+        SWIFTCOMPLETE_PLUGIN_DIR . 'includes/Assets/AssetEnqueuer.php',
       );
 
       foreach ($required_files as $file) {
@@ -82,28 +92,20 @@ class SwiftcompleteActivator
           deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
           self::safe_wp_die(
             $error_msg,
-            __('Plugin Activation Error', 'swiftcomplete'),
+            __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
             array('back_link' => true)
           );
         }
       }
 
-      // Try to load main class
-      if (!class_exists('Swiftcomplete')) {
-        $main_class_file = SWIFTCOMPLETE_PLUGIN_DIR . 'includes/class-swiftcomplete.php';
-        if (file_exists($main_class_file)) {
-          require_once $main_class_file;
-        }
-      }
-
-      // Verify class loaded
-      if (!class_exists('Swiftcomplete')) {
-        $error_msg = __('Failed to load Swiftcomplete main class. Plugin may be corrupted.', 'swiftcomplete');
+      // Verify main plugin class is available
+      if (!class_exists('\Swiftcomplete\Core\Plugin')) {
+        $error_msg = __('Failed to load Swiftcomplete main plugin class. Plugin may be corrupted.', 'swiftcomplete');
         self::log_error('ACTIVATION_ERROR', $error_msg);
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
           $error_msg,
-          __('Plugin Activation Error', 'swiftcomplete'),
+          __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
           array('back_link' => true)
         );
       }
@@ -115,7 +117,7 @@ class SwiftcompleteActivator
       // Log successful activation
       self::log_error('ACTIVATION_SUCCESS', 'Plugin activated successfully');
 
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       $error_msg = sprintf(
         __('Plugin activation failed: %s', 'swiftcomplete'),
         $e->getMessage()
@@ -124,10 +126,10 @@ class SwiftcompleteActivator
       deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
       self::safe_wp_die(
         $error_msg,
-        __('Plugin Activation Error', 'swiftcomplete'),
+        __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
         array('back_link' => true)
       );
-    } catch (Error $e) {
+    } catch (\Error $e) {
       $error_msg = sprintf(
         __('Plugin activation fatal error: %s', 'swiftcomplete'),
         $e->getMessage()
@@ -141,8 +143,6 @@ class SwiftcompleteActivator
       );
     }
 
-    // Restore error handler on successful activation
-    restore_error_handler();
   }
 
   /**
@@ -153,33 +153,13 @@ class SwiftcompleteActivator
     // Clean up activation flag
     delete_option('swiftcomplete_activated');
 
+    // Reset error count if ErrorHandler was tracking errors
+    if (class_exists('\Swiftcomplete\Core\ErrorHandler')) {
+      \Swiftcomplete\Core\ErrorHandler::reset_error_count();
+    }
+
     // Log deactivation
     self::log_error('DEACTIVATION', 'Plugin deactivated');
-  }
-
-  /**
-   * Custom error handler
-   *
-   * @param int    $errno   Error number.
-   * @param string $errstr  Error message.
-   * @param string $errfile Error file.
-   * @param int    $errline Error line.
-   * @return bool
-   */
-  public static function error_handler($errno, $errstr, $errfile, $errline)
-  {
-    // Only log errors during activation
-    if (defined('SWIFTCOMPLETE_ACTIVATING') && SWIFTCOMPLETE_ACTIVATING) {
-      $error_msg = sprintf(
-        'Error [%d]: %s in %s on line %d',
-        $errno,
-        $errstr,
-        $errfile,
-        $errline
-      );
-      self::log_error('ACTIVATION_WARNING', $error_msg);
-    }
-    return false; // Let PHP handle the error normally
   }
 
   /**
@@ -202,7 +182,22 @@ class SwiftcompleteActivator
   }
 
   /**
-   * Safely die with error message, ensuring error handler is restored first
+   * Declare compatibility with WooCommerce features (HPOS, Blocks, etc.)
+   */
+  public static function declare_wc_compatibility()
+  {
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+      // Declare HPOS (High-Performance Order Storage) compatibility
+      \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+        'custom_order_tables',
+        SWIFTCOMPLETE_PLUGIN_FILE,
+        true
+      );
+    }
+  }
+
+  /**
+   * Safely die with error message
    *
    * @param string $message Error message to display.
    * @param string $title   Error title.
@@ -210,8 +205,6 @@ class SwiftcompleteActivator
    */
   private static function safe_wp_die($message, $title, $args = array())
   {
-    // Restore error handler before dying to prevent leaving PHP with custom handler
-    restore_error_handler();
     wp_die($message, $title, $args);
   }
 
@@ -233,20 +226,6 @@ class SwiftcompleteActivator
         get_bloginfo('version')
       );
       error_log($log_message);
-    }
-
-    // Also log to custom file if WP_DEBUG is enabled
-    if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
-      $log_file = WP_CONTENT_DIR . '/debug.log';
-      if (is_writable($log_file) || is_writable(dirname($log_file))) {
-        $log_entry = sprintf(
-          "[%s] Swiftcomplete %s: %s\n",
-          current_time('mysql'),
-          $type,
-          $message
-        );
-        @file_put_contents($log_file, $log_entry, FILE_APPEND);
-      }
     }
   }
 }

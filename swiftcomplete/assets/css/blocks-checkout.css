@@ -1,0 +1,31 @@
+/**
+ * Checkout styles for Swiftcomplete
+ */
+
+/* Style the custom field to match WooCommerce blocks styling */
+/* .wc-block-components-address-form [data-field-name="swiftcomplete/custom-field"] {
+    margin-bottom: 1em;
+}
+
+.wc-block-components-address-form [data-field-name="swiftcomplete/custom-field"] .wc-block-components-text-input,
+.wc-block-components-address-form [data-field-name="swiftcomplete/custom-field"] input {
+    width: 100%;
+} */
+
+/* Ensure proper spacing when field is positioned before address_1 */
+/* .wc-block-components-address-form [data-field-name="swiftcomplete/custom-field"]+.wc-block-components-address-form__field:has(input[name*="address_1"]) {
+    margin-top: 1em;
+} */
+
+/* Style the field container */
+/* .wc-block-components-address-form__field[data-field-name="swiftcomplete/custom-field"] {
+    width: 100%;
+    margin-bottom: 1em;
+} */
+
+/* Ensure proper label styling */
+/* .wc-block-components-address-form__field[data-field-name="swiftcomplete/custom-field"] label {
+    display: block;
+    margin-bottom: 0.5em;
+    font-weight: 500;
+} */

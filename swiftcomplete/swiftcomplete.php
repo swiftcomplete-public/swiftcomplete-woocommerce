@@ -8,8 +8,8 @@
  * Author URI: https://www.swiftcomplete.com
  * Requires at least: 5.0
  * Requires PHP: 7.2
- * WC requires at least: 3.0
- * WC tested up to: 8.0
+ * WC requires at least: 5.7.1
+ * WC tested up to: 9.6.2
  *
  * @package Swiftcomplete
  */
@@ -17,9 +17,9 @@
 // Prevent direct access
 defined('ABSPATH') || exit;
 
-// Define plugin constants (with safety checks)
+// Define plugin constants
 if (!defined('SWIFTCOMPLETE_VERSION')) {
-  define('SWIFTCOMPLETE_VERSION', '1.1.0');
+  define('SWIFTCOMPLETE_VERSION', '1.0.0');
 }
 
 if (!defined('SWIFTCOMPLETE_PLUGIN_FILE')) {
@@ -50,46 +50,49 @@ if (!defined('SWIFTCOMPLETE_PLUGIN_URL')) {
 }
 
 /**
- * Main plugin class loader
+ * Load PSR-4 autoloader
  */
-if (!class_exists('Swiftcomplete')) {
-  $main_class_file = SWIFTCOMPLETE_PLUGIN_DIR . 'includes/class-swiftcomplete.php';
-  if (file_exists($main_class_file)) {
-    require_once $main_class_file;
-  }
+$autoloader_file = SWIFTCOMPLETE_PLUGIN_DIR . 'includes/autoloader.php';
+if (file_exists($autoloader_file)) {
+  require_once $autoloader_file;
 }
 
-/**
- * Initialize the plugin
- */
-function swiftcomplete_init()
-{
-  // Safety check: Ensure class was loaded
-  if (!class_exists('Swiftcomplete')) {
-    return null;
-  }
-
-  try {
-    return Swiftcomplete::get_instance();
-  } catch (Exception $e) {
-    // Log error but don't crash WordPress
-    if (function_exists('error_log')) {
-      error_log('Swiftcomplete plugin error: ' . $e->getMessage());
+if (!function_exists('swiftcomplete_init')) {
+  /**
+   * Initialize the plugin
+   * Uses OOP architecture with dependency injection and namespaces
+   */
+  function swiftcomplete_init()
+  {
+    if (!class_exists('\Swiftcomplete\Core\Plugin')) {
+      if (function_exists('error_log')) {
+        error_log('Swiftcomplete: Main plugin class not found. Plugin may be corrupted.');
+      }
+      return null;
     }
-    return null;
+
+    try {
+      return \Swiftcomplete\Core\Plugin::get_instance();
+    } catch (\Throwable $e) {
+      // Log error but don't crash WordPress
+      if (function_exists('error_log')) {
+        error_log('Swiftcomplete error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+      }
+      return null;
+    }
   }
 }
 
 // Register activation and deactivation hooks
 if (function_exists('register_activation_hook')) {
   // Load activator class
-  $activator_file = SWIFTCOMPLETE_PLUGIN_DIR . 'includes/class-swiftcomplete-activator.php';
+  $activator_file = SWIFTCOMPLETE_PLUGIN_DIR . 'includes/activator.php';
   if (file_exists($activator_file)) {
     require_once $activator_file;
   }
 
-  register_activation_hook(SWIFTCOMPLETE_PLUGIN_FILE, array('SwiftcompleteActivator', 'activate'));
-  register_deactivation_hook(SWIFTCOMPLETE_PLUGIN_FILE, array('SwiftcompleteActivator', 'deactivate'));
+  register_activation_hook(SWIFTCOMPLETE_PLUGIN_FILE, array('\Swiftcomplete\Activator', 'activate'));
+  register_deactivation_hook(SWIFTCOMPLETE_PLUGIN_FILE, array('\Swiftcomplete\Activator', 'deactivate'));
 }
 
 // Initialize plugin only if WordPress is fully loaded
@@ -98,56 +101,5 @@ if (function_exists('add_action')) {
   add_action('plugins_loaded', 'swiftcomplete_init', 10);
 
   // Declare compatibility with WooCommerce features
-  add_action('before_woocommerce_init', 'swiftcomplete_declare_wc_compatibility');
-}
-
-/**
- * Declare compatibility with WooCommerce features (HPOS, Blocks, etc.)
- */
-if (!function_exists('swiftcomplete_declare_wc_compatibility')) {
-  function swiftcomplete_declare_wc_compatibility()
-  {
-    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
-      // Declare HPOS (High-Performance Order Storage) compatibility
-      \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
-        'custom_order_tables',
-        SWIFTCOMPLETE_PLUGIN_FILE,
-        true
-      );
-
-      // Declare Cart and Checkout Blocks compatibility
-      \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
-        'cart_checkout_blocks',
-        SWIFTCOMPLETE_PLUGIN_FILE,
-        true
-      );
-    }
-  }
-}
-
-/**
- * Load a partial
- *
- * @param string $partial Partial name (e.g., 'admin/settings-page').
- * @param array  $args    Variables to pass to partial.
- */
-if (!function_exists('swiftcomplete_load_partial')) {
-  function swiftcomplete_load_partial($partial, $args = array())
-  {
-    $partial_path = SWIFTCOMPLETE_PLUGIN_DIR . 'partials/' . $partial . '.php';
-
-    if (!file_exists($partial_path)) {
-      if (function_exists('error_log')) {
-        error_log('Swiftcomplete partial not found: ' . $partial_path);
-      }
-      return;
-    }
-
-    // Extract variables for partial
-    if (!empty($args)) {
-      extract($args);
-    }
-
-    include $partial_path;
-  }
+  add_action('before_woocommerce_init', array('\Swiftcomplete\Activator', 'declare_wc_compatibility'), 10);
 }
