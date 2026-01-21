@@ -120,7 +120,8 @@ class Plugin
                     $container->get('blocks_strategy'),
                     $container->get('shortcode_strategy'),
                 ),
-                $container->get('hook_manager')
+                $container->get('hook_manager'),
+                $container->get('settings_manager'),
             );
         });
 
@@ -138,6 +139,7 @@ class Plugin
             return new AssetEnqueuer(
                 $container->get('checkout_type_identifier'),
                 $container->get('hook_manager'),
+                $container->get('settings_manager'),
                 self::VERSION,
                 SWIFTCOMPLETE_PLUGIN_URL
             );

@@ -11,6 +11,7 @@ use Swiftcomplete\Checkout\BlocksCheckout;
 use Swiftcomplete\Checkout\ShortcodeCheckout;
 use Swiftcomplete\Contracts\CheckoutInterface;
 use Swiftcomplete\Core\HookManager;
+use Swiftcomplete\Settings\SettingsManager;
 
 defined('ABSPATH') || exit;
 
@@ -34,15 +35,23 @@ class CheckoutHandler
     private $hook_manager;
 
     /**
+     * Settings manager
+     *
+     * @var SettingsManager
+     */
+    private $settings_manager;
+
+    /**
      * Constructor
      *
      * @param CheckoutInterface[] $checkouts   Available checkouts
      * @param HookManager                 $hook_manager Hook manager
      */
-    public function __construct(array $checkouts, HookManager $hook_manager)
+    public function __construct(array $checkouts, HookManager $hook_manager, SettingsManager $settings_manager)
     {
         $this->checkouts = $checkouts;
         $this->hook_manager = $hook_manager;
+        $this->settings_manager = $settings_manager;
         $this->register_hooks();
     }
 
@@ -58,7 +67,10 @@ class CheckoutHandler
             return;
         }
 
-        // Register field label removal filter for shortcode checkout
+        if (!$this->settings_manager->is_enabled()) {
+            return;
+        }
+
         $shortcode_checkout = $this->get_checkout('shortcode');
         if ($shortcode_checkout instanceof ShortcodeCheckout) {
             // Register fields filter
@@ -68,8 +80,6 @@ class CheckoutHandler
             $this->hook_manager->register_action('woocommerce_checkout_update_order_meta', array($this, 'legacy_save_field_value'), 5, 2);
         }
 
-        // Register blocks checkout specific hooks
-        // Note: Store API hooks are available since WooCommerce 4.0, so they're safe for WC 5.7.1+
         $blocks_checkout = $this->get_checkout('blocks');
         if ($blocks_checkout instanceof BlocksCheckout) {
             // Register extension data mapping filter
@@ -87,6 +97,12 @@ class CheckoutHandler
      */
     public function legacy_save_field_value($order_id, $_data = array())
     {
+        $nonce = isset($_POST['woocommerce-process-checkout-nonce']) ? wp_unslash($_POST['woocommerce-process-checkout-nonce']) : '';
+        error_log('nonce: ' . $nonce);
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'woocommerce-process_checkout')) {
+            return;
+        }
+
         $order = wc_get_order($order_id);
         if ($order) {
             $this->save_extension_data_to_order($order, new \WP_REST_Request());

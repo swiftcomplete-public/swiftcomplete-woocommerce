@@ -1,14 +1,12 @@
 'use strict';
 
 /**
- * Initialize Swiftcomplete blocks checkout functionality
- * @param {string} fieldId - Field ID (e.g., 'swiftcomplete-address-search')
- * @param {string} dataFieldNameSuffix - Data field name suffix (e.g., 'swiftcomplete/address-search')
+ * Initialise Swiftcomplete fields (e.g.: address search field, what3words)
+ * - Blocks checkout specific code
+ * @param {object} config - Configuration object
  */
-function initSwiftcompleteBlocksCheckout(fieldId, dataFieldNameSuffix) {
-  const FIELD_ID = fieldId;
-  const DATA_FIELD_NAME_SUFFIX = dataFieldNameSuffix;
-
+function initialiseSwiftcompleteFields(config) {
+  console.log('Swiftcomplete: Setting up fields');
   /**
    * Create the label HTML element
    * @param {*} fieldId
@@ -62,8 +60,8 @@ function initSwiftcompleteBlocksCheckout(fieldId, dataFieldNameSuffix) {
    * @returns {HTMLElement} The field container element
    */
   function createAddressSearchField(addressType) {
-    const fieldId = `${addressType}-${FIELD_ID}`;
-    const dataFieldName = `${addressType}/${DATA_FIELD_NAME_SUFFIX}`;
+    const fieldId = `${addressType}-${config.fieldId}`;
+    const dataFieldName = `${addressType}/${config.dataFieldNameSuffix}`;
     const fieldLabel = 'Type your address or postcode...';
 
     const container = document.createElement('div');
@@ -89,7 +87,7 @@ function initSwiftcompleteBlocksCheckout(fieldId, dataFieldNameSuffix) {
    * @returns {boolean} True if field exists
    */
   function fieldExists(addressForm, addressType) {
-    const fieldId = `${addressType}-${FIELD_ID}`;
+    const fieldId = `${addressType}-${config.fieldId}`;
     return addressForm.querySelector(`#${fieldId}`) !== null;
   }
 
@@ -263,8 +261,12 @@ function initSwiftcompleteBlocksCheckout(fieldId, dataFieldNameSuffix) {
       return { billing: null, shipping: null };
     }
 
-    const billingField = checkoutBlock.querySelector(`#billing-${FIELD_ID}`);
-    const shippingField = checkoutBlock.querySelector(`#shipping-${FIELD_ID}`);
+    const billingField = checkoutBlock.querySelector(
+      `#billing-${config.fieldId}`
+    );
+    const shippingField = checkoutBlock.querySelector(
+      `#shipping-${config.fieldId}`
+    );
 
     const shippingValue = shippingField ? shippingField.value.trim() : null;
     let billingValue = billingField ? billingField.value.trim() : null;
@@ -317,15 +319,19 @@ function initSwiftcompleteBlocksCheckout(fieldId, dataFieldNameSuffix) {
       setupState.formSubmitListener = true;
     }
 
-    const billingField = checkoutBlock.querySelector(`#billing-${FIELD_ID}`);
-    const shippingField = checkoutBlock.querySelector(`#shipping-${FIELD_ID}`);
+    const billingField = checkoutBlock.querySelector(
+      `#billing-${config.fieldId}`
+    );
+    const shippingField = checkoutBlock.querySelector(
+      `#shipping-${config.fieldId}`
+    );
 
     const syncBillingFromShipping = () => {
       const currentBillingField = checkoutBlock.querySelector(
-        `#billing-${FIELD_ID}`
+        `#billing-${config.fieldId}`
       );
       const currentShippingField = checkoutBlock.querySelector(
-        `#shipping-${FIELD_ID}`
+        `#shipping-${config.fieldId}`
       );
       if (
         isBillingSameAsShipping() &&
@@ -389,7 +395,7 @@ function initSwiftcompleteBlocksCheckout(fieldId, dataFieldNameSuffix) {
       fieldsWithListeners.add(shippingField);
       shippingField.addEventListener('input', () => {
         const currentBillingField = checkoutBlock.querySelector(
-          `#billing-${FIELD_ID}`
+          `#billing-${config.fieldId}`
         );
         if (isBillingSameAsShipping() && currentBillingField) {
           currentBillingField.value = shippingField.value;
@@ -401,7 +407,7 @@ function initSwiftcompleteBlocksCheckout(fieldId, dataFieldNameSuffix) {
       });
       shippingField.addEventListener('change', () => {
         const currentBillingField = checkoutBlock.querySelector(
-          `#billing-${FIELD_ID}`
+          `#billing-${config.fieldId}`
         );
         if (isBillingSameAsShipping() && currentBillingField) {
           currentBillingField.value = shippingField.value;

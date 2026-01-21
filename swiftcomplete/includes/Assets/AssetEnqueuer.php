@@ -9,6 +9,7 @@ namespace Swiftcomplete\Assets;
 
 use Swiftcomplete\Contracts\AssetEnqueuerInterface;
 use Swiftcomplete\Core\HookManager;
+use Swiftcomplete\Settings\SettingsManager;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
 use Swiftcomplete\Utilities\FieldConstants;
 
@@ -34,6 +35,13 @@ class AssetEnqueuer implements AssetEnqueuerInterface
     private $hook_manager;
 
     /**
+     * Settings manager
+     *
+     * @var SettingsManager
+     */
+    private $settings_manager;
+
+    /**
      * Plugin version
      *
      * @var string
@@ -52,17 +60,20 @@ class AssetEnqueuer implements AssetEnqueuerInterface
      *
      * @param CheckoutTypeIdentifier $checkout_type_identifier Checkout type detector
      * @param HookManager         $hook_manager  Hook manager
+     * @param SettingsManager     $settings_manager Settings manager
      * @param string                          $version       Plugin version
      * @param string                          $plugin_url    Plugin URL
      */
     public function __construct(
         CheckoutTypeIdentifier $checkout_type_identifier,
         HookManager $hook_manager,
+        SettingsManager $settings_manager,
         string $version,
         string $plugin_url
     ) {
         $this->checkout_type_identifier = $checkout_type_identifier;
         $this->hook_manager = $hook_manager;
+        $this->settings_manager = $settings_manager;
         $this->version = $version;
         $this->plugin_url = $plugin_url;
         $this->register_hooks();
@@ -80,10 +91,14 @@ class AssetEnqueuer implements AssetEnqueuerInterface
             return;
         }
 
+        if (!$this->settings_manager->is_enabled()) {
+            return;
+        }
+
         // Enqueue scripts for blocks checkout
         $this->hook_manager->register_action('woocommerce_blocks_enqueue_checkout_block_scripts_after', array($this, 'enqueue_for_checkout'), 10, 0);
         // Fallback for shortcode checkout
-        $this->hook_manager->register_action('wp_enqueue_scripts', array($this, 'enqueue_for_checkout_fallback'), 10, 0);
+        $this->hook_manager->register_action('wp_enqueue_scripts', array($this, 'enqueue_for_checkout'), 10, 0);
     }
 
     /**
@@ -93,19 +108,8 @@ class AssetEnqueuer implements AssetEnqueuerInterface
      */
     public function enqueue_for_checkout(): void
     {
-        $this->enqueue_scripts();
-    }
-
-    /**
-     * Fallback method to enqueue scripts on checkout page
-     * This ensures scripts are loaded even if the blocks hook doesn't fire
-     *
-     * @return void
-     */
-    public function enqueue_for_checkout_fallback(): void
-    {
         // Check if scripts are already enqueued to prevent duplicate enqueuing
-        if (wp_script_is('swiftcomplete-script', 'enqueued')) {
+        if (wp_script_is('swiftcomplete-component', 'enqueued')) {
             return;
         }
         $this->enqueue_scripts();
@@ -119,8 +123,14 @@ class AssetEnqueuer implements AssetEnqueuerInterface
      */
     private function enqueue_scripts(): void
     {
-        if (!wp_script_is('swiftcomplete-script', 'enqueued')) {
-            wp_enqueue_script('swiftcomplete-script', 'https://assets.swiftcomplete.com/js/swiftlookup.js', array(), $this->version, true);
+        if (!wp_script_is('swiftcomplete-component', 'enqueued')) {
+            wp_enqueue_script(
+                'swiftcomplete-component',
+                'https://assets.swiftcomplete.com/js/swiftlookup.js',
+                array(),
+                $this->version,
+                true
+            );
         }
         $this->enqueue_blocks_checkout_scripts();
         $this->enqueue_shortcode_checkout_scripts();
@@ -137,22 +147,40 @@ class AssetEnqueuer implements AssetEnqueuerInterface
             return;
         }
 
+        // Enqueue CSS for styling
+        wp_enqueue_style(
+            'swiftcomplete-checkout-fields',
+            $this->plugin_url . 'assets/css/blocks-checkout.css',
+            array(),
+            $this->version
+        );
+
         wp_enqueue_script(
-            'swiftcomplete-checkout',
-            $this->plugin_url . 'assets/js/blocks-checkout.js',
+            'swiftcomplete-checkout-fields',
+            $this->plugin_url . 'assets/js/blocks/fields.js',
             array('wp-hooks', 'wp-element', 'wc-blocks-checkout'),
             $this->version,
             true
         );
 
-        $this->add_blocks_checkout_invoke_script();
+        self::invoke_function_inline_script(
+            'swiftcomplete-checkout-fields',
+            'initialiseSwiftcompleteFields(%s);',
+            $this->get_blocks_checkout_field_config()
+        );
 
-        // Enqueue CSS for styling
-        wp_enqueue_style(
-            'swiftcomplete-checkout',
-            $this->plugin_url . 'assets/css/blocks-checkout.css',
-            array(),
-            $this->version
+        wp_enqueue_script(
+            'swiftcomplete-component-loader',
+            $this->plugin_url . 'assets/js/component-loader.js',
+            array('swiftcomplete-component', 'swiftcomplete-checkout-fields'),
+            $this->version,
+            true
+        );
+
+        self::invoke_function_inline_script(
+            'swiftcomplete-component-loader',
+            'loadSwiftcompleteComponent(%s);',
+            $this->settings_manager->get_js_settings()
         );
     }
 
@@ -169,44 +197,18 @@ class AssetEnqueuer implements AssetEnqueuerInterface
 
         // Enqueue JavaScript to position the field before address_1
         wp_enqueue_script(
-            'swiftcomplete-checkout',
-            $this->plugin_url . 'assets/js/checkout.js',
-            array('wp-hooks', 'wp-element'),
+            'swiftcomplete-component-loader',
+            $this->plugin_url . 'assets/js/component-loader.js',
+            array('swiftcomplete-component'),
             $this->version,
             true
         );
 
-        $this->add_checkout_invoke_script();
-    }
-
-    /**
-     * Add inline script to pass field constants to blocks checkout JavaScript
-     *
-     * @return void
-     */
-    private function add_blocks_checkout_invoke_script(): void
-    {
-        // Command to invoke from JavaScript
-        $initialisation_command = 'initSwiftcompleteBlocksCheckout(%s, %s);';
-        $config = $this->get_blocks_checkout_config();
-        $inline_script = sprintf(
-            $initialisation_command,
-            wp_json_encode($config['fieldId']),
-            wp_json_encode($config['dataFieldNameSuffix'])
+        self::invoke_function_inline_script(
+            'swiftcomplete-component-loader',
+            'loadSwiftcompleteComponent(%s);',
+            $this->settings_manager->get_js_settings()
         );
-        wp_add_inline_script('swiftcomplete-checkout', $inline_script, 'after');
-    }
-
-    /**
-     * Add inline script to load Swiftcomplete field on checkout page
-     *
-     * @return void
-     */
-    private function add_checkout_invoke_script(): void
-    {
-        $initialisation_command = 'initSwiftcompleteCheckout();';
-        $inline_script = sprintf($initialisation_command);
-        wp_add_inline_script('swiftcomplete-checkout', $inline_script, 'after');
     }
 
     /**
@@ -214,11 +216,25 @@ class AssetEnqueuer implements AssetEnqueuerInterface
      *
      * @return array<string, string> Configuration array with field constants
      */
-    private function get_blocks_checkout_config(): array
+    private function get_blocks_checkout_field_config(): array
     {
         return array(
             'fieldId' => FieldConstants::ADDRESS_SEARCH_FIELD_ID,
             'dataFieldNameSuffix' => FieldConstants::ADDRESS_SEARCH_DATA_FIELD_NAME_SUFFIX,
         );
+    }
+
+    /**
+     * Invoke a function inline script
+     *
+     * @param string $handle The handle of the script to invoke
+     * @param string $fn The function to invoke
+     * @param array $args The arguments to pass to the function
+     * @return void
+     */
+    private static function invoke_function_inline_script(string $handle, string $fn, array $args = array()): void
+    {
+        $script = sprintf($fn, wp_json_encode($args));
+        wp_add_inline_script($handle, $script, 'after');
     }
 }

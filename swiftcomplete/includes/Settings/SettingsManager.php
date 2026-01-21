@@ -67,7 +67,11 @@ class SettingsManager
    */
   public function register_settings(): void
   {
-    register_setting('swiftcomplete_settings', self::SETTINGS_OPTION, array($this, 'validate_settings'));
+    register_setting(
+      self::SETTINGS_OPTION,
+      self::SETTINGS_OPTION,
+      array($this, 'load_settings')
+    );
 
     add_settings_section('swiftcomplete_api_settings', 'Swiftcomplete Settings', array($this, 'render_help_text'), self::SETTINGS_PAGE);
     add_settings_field('swiftcomplete_api_key', 'API Key(required)', array($this, 'render_api_key_field'), self::SETTINGS_PAGE, 'swiftcomplete_api_settings');
@@ -91,20 +95,39 @@ class SettingsManager
    * @param array $input Input data
    * @return array
    */
-  public function validate_settings(array $input): array
+  public function load_settings(array $input): array
   {
-    $newinput = array();
-    $newinput['api_key'] = isset($input['api_key']) ? sanitize_text_field(wp_unslash($input['api_key'])) : '';
-    $newinput['billing_label'] = isset($input['billing_label']) ? sanitize_text_field(wp_unslash($input['billing_label'])) : '';
-    $newinput['billing_placeholder'] = isset($input['billing_placeholder']) ? sanitize_text_field(wp_unslash($input['billing_placeholder'])) : '';
-    $newinput['shipping_label'] = isset($input['shipping_label']) ? sanitize_text_field(wp_unslash($input['shipping_label'])) : '';
-    $newinput['shipping_placeholder'] = isset($input['shipping_placeholder']) ? sanitize_text_field(wp_unslash($input['shipping_placeholder'])) : '';
-    $newinput['bias_towards'] = isset($input['bias_towards']) ? sanitize_text_field(wp_unslash($input['bias_towards'])) : '';
-    $newinput['bias_towards_lat_lon'] = isset($input['bias_towards_lat_lon']) ? sanitize_text_field(wp_unslash($input['bias_towards_lat_lon'])) : '';
-    $newinput['w3w_enabled'] = isset($input['w3w_enabled']) && $input['w3w_enabled'] == true;
-    $newinput['state_counties_enabled'] = isset($input['state_counties_enabled']) && $input['state_counties_enabled'] == true;
-    $newinput['hide_fields'] = isset($input['hide_fields']) && $input['hide_fields'] == true;
-    return $newinput;
+    // Get existing settings to preserve values when checkboxes are unchecked
+    $existing = get_option(self::SETTINGS_OPTION, array());
+    if (!is_array($existing)) {
+      $existing = array();
+    }
+
+    $validated = array();
+    $validated['api_key'] = isset($input['api_key']) ? sanitize_text_field(wp_unslash($input['api_key'])) : '';
+    $validated['billing_label'] = isset($input['billing_label']) ? sanitize_text_field(wp_unslash($input['billing_label'])) : '';
+    $validated['billing_placeholder'] = isset($input['billing_placeholder']) ? sanitize_text_field(wp_unslash($input['billing_placeholder'])) : '';
+    $validated['shipping_label'] = isset($input['shipping_label']) ? sanitize_text_field(wp_unslash($input['shipping_label'])) : '';
+    $validated['shipping_placeholder'] = isset($input['shipping_placeholder']) ? sanitize_text_field(wp_unslash($input['shipping_placeholder'])) : '';
+    $validated['bias_towards'] = isset($input['bias_towards']) ? sanitize_text_field(wp_unslash($input['bias_towards'])) : '';
+    $validated['bias_towards_lat_lon'] = isset($input['bias_towards_lat_lon']) ? sanitize_text_field(wp_unslash($input['bias_towards_lat_lon'])) : '';
+    // Checkboxes: if key exists in input, it's checked (value is a string from form, not boolean)
+    // If key doesn't exist, checkbox was unchecked, so set to false
+    $validated['w3w_enabled'] = isset($input['w3w_enabled']);
+    $validated['state_counties_enabled'] = isset($input['state_counties_enabled']);
+    $validated['hide_fields'] = isset($input['hide_fields']);
+    return $validated;
+  }
+
+  /**
+   * Check if Swiftcomplete is enabled
+   *
+   * @return bool
+   */
+  public function is_enabled(): bool
+  {
+    $settings = get_option(self::SETTINGS_OPTION);
+    return $settings !== false && array_key_exists('api_key', $settings) && strlen($settings['api_key']) > 0;
   }
 
   /**
@@ -194,9 +217,9 @@ class SettingsManager
   public function render_w3w_enabled_field(): void
   {
     $settings = get_option(self::SETTINGS_OPTION);
-    $w3w_enabled = $settings === false || (!array_key_exists('w3w_enabled', $settings) || (array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] == true));
+    $w3w_enabled = $settings === false || (!\array_key_exists('w3w_enabled', $settings) || (\array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] === true));
 
-    if ($w3w_enabled == true) {
+    if ($w3w_enabled === true) {
       echo "<input id='swiftcomplete_w3w_enabled' name='swiftcomplete_settings[w3w_enabled]' type='checkbox' checked />";
     } else {
       echo "<input id='swiftcomplete_w3w_enabled' name='swiftcomplete_settings[w3w_enabled]' type='checkbox' />";
@@ -318,12 +341,48 @@ class SettingsManager
   }
 
   /**
-   * Get settings option name
+   * Get settings formatted for JavaScript
+   * Returns settings in a format ready to be passed to JavaScript
    *
-   * @return string
+   * @return array<string, mixed> Formatted settings array
    */
-  public static function get_settings_option(): string
+  public function get_js_settings(): array
   {
-    return self::SETTINGS_OPTION;
+    $settings = get_option(self::SETTINGS_OPTION);
+    if (!is_array($settings)) {
+      $settings = array();
+    }
+
+    // Get API key
+    $api_key = isset($settings['api_key']) && strlen($settings['api_key']) > 0
+      ? $settings['api_key']
+      : '';
+
+    // Determine search for value (address or address,what3words)
+    $w3w_enabled = !isset($settings['w3w_enabled']) || $settings['w3w_enabled'] === true;
+    $search_for = $w3w_enabled ? 'address,what3words' : 'address';
+
+    // Get hide fields setting
+    $hide_fields = isset($settings['hide_fields']) && $settings['hide_fields'] ? 'true' : 'false';
+
+    // Get bias towards lat/lon
+    $bias_lat_lon = isset($settings['bias_towards_lat_lon']) ? $settings['bias_towards_lat_lon'] : '';
+
+    // Get placeholders
+    $billing_placeholder = isset($settings['billing_placeholder']) ? $settings['billing_placeholder'] : '';
+    $shipping_placeholder = isset($settings['shipping_placeholder']) ? $settings['shipping_placeholder'] : '';
+
+    // Get state/counties enabled
+    $state_counties = isset($settings['state_counties_enabled']) && $settings['state_counties_enabled'] ? 'true' : 'false';
+
+    return array(
+      'api_key' => $api_key,
+      'search_for' => $search_for,
+      'hide_fields' => $hide_fields,
+      'bias_lat_lon' => $bias_lat_lon,
+      'billing_placeholder' => $billing_placeholder,
+      'shipping_placeholder' => $shipping_placeholder,
+      'state_counties' => $state_counties,
+    );
   }
 }
