@@ -128,10 +128,11 @@ class ShortcodeCheckout implements CheckoutInterface
     /**
      * Save field value to order
      *
-     * @param int $order_id Order ID
+     * @param \WC_Order $order Order object
+     * @param array     $data  Extension data
      * @return void
      */
-    public function save_extension_data_to_order(\WC_Order $order, \WP_REST_Request $request): \WC_Order
+    public function save_extension_data_to_order(\WC_Order $order, array $data): void
     {
         $billing_key = 'billing_' . $this->get_field_id();
         $shipping_key = 'shipping_' . $this->get_field_id();
@@ -154,12 +155,11 @@ class ShortcodeCheckout implements CheckoutInterface
 
         // Save to order meta
         if ($billing_value) {
-            $this->meta_repository->save($order->get_id(), FieldConstants::get_billing_meta_key(), $billing_value);
+            $this->meta_repository->save($order->get_id(), FieldConstants::get_billing_what3words_meta_key(), $billing_value);
         }
         if ($shipping_value) {
-            $this->meta_repository->save($order->get_id(), FieldConstants::get_shipping_meta_key(), $shipping_value);
+            $this->meta_repository->save($order->get_id(), FieldConstants::get_shipping_what3words_meta_key(), $shipping_value);
         }
-        return $order;
     }
 
     /**
@@ -192,7 +192,7 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function get_field_id(): string
     {
-        return str_replace('-', '_', FieldConstants::ADDRESS_SEARCH_FIELD_ID);
+        return str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID);
     }
 
     /**

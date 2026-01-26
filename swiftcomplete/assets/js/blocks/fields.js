@@ -1,228 +1,33 @@
 'use strict';
 
 /**
- * Initialise Swiftcomplete fields (e.g.: address search field, what3words)
- * - Blocks checkout specific code
- * @param {object} config - Configuration object
+ * Swiftcomplete WooCommerce Blocks Checkout Fields
  */
-function initialiseSwiftcompleteFields(config) {
-  console.log('Swiftcomplete: Setting up fields');
-  /**
-   * Create the label HTML element
-   * @param {*} fieldId
-   * @param {*} fieldLabel
-   * @returns {HTMLElement} The label element
-   */
-  function createLabel(fieldId, fieldLabel) {
-    const label = document.createElement('label');
-    label.setAttribute('for', fieldId);
-    label.className = 'wc-block-components-text-input__label';
-    label.textContent = fieldLabel;
-    return label;
-  }
 
-  /**
-   * Create the input HTML element
-   * @param {*} fieldId
-   * @param {*} dataFieldName
-   * @returns {HTMLElement} The input element
-   */
-  function createInput(fieldId, dataFieldName) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.id = fieldId;
-    input.className = 'wc-block-components-text-input__input';
-    input.setAttribute('data-field-name', dataFieldName);
-    input.setAttribute('autocomplete', 'off');
-    return input;
-  }
+/**
+ * Constants for configuration values
+ */
+const FIELD_DEFAULTS = {
+  MAX_INJECTION_ATTEMPTS: 20,
+  INJECTION_RETRY_DELAY: 200,
+  REINJECTION_DELAY: 100,
+  SYNC_DELAY: 100,
+  CHECKOUT_BLOCK_SELECTOR: '.wc-block-checkout',
+  ADDRESS_FORM_SELECTOR: '.wc-block-components-address-form',
+  DEFAULT_SEARCH_FIELD_LABEL: 'Type your address or postcode...',
+  ADDRESS_TYPES: ['billing', 'shipping'],
+};
 
-  /**
-   * Setup the event listeners for the input element
-   * @param {HTMLElement} input - The input element
-   */
-  function setupInputEventListeners(container, input) {
-    const syncActiveState = () => {
-      const hasValue = input.value.trim().length > 0;
-      const hasFocus = document.activeElement === input;
-      container.classList.toggle('is-active', hasFocus || hasValue);
-    };
-    input.addEventListener('focus', syncActiveState);
-    input.addEventListener('blur', syncActiveState);
-    input.addEventListener('input', syncActiveState);
-
-    syncActiveState();
-  }
-
-  /**
-   * Create the address search field HTML element
-   * @param {string} addressType - 'billing' or 'shipping'
-   * @returns {HTMLElement} The field container element
-   */
-  function createAddressSearchField(addressType) {
-    const fieldId = `${addressType}-${config.fieldId}`;
-    const dataFieldName = `${addressType}/${config.dataFieldNameSuffix}`;
-    const fieldLabel = 'Type your address or postcode...';
-
-    const container = document.createElement('div');
-    container.className =
-      'wc-block-components-text-input wc-block-components-address-form__swiftcomplete-address-search';
-
-    const label = createLabel(fieldId, fieldLabel);
-
-    const input = createInput(fieldId, dataFieldName);
-
-    setupInputEventListeners(container, input);
-
-    container.appendChild(input);
-    container.appendChild(label);
-
-    return container;
-  }
-
-  /**
-   * Check if field already exists in the form
-   * @param {HTMLElement} addressForm - The address form container
-   * @param {string} addressType - 'billing' or 'shipping'
-   * @returns {boolean} True if field exists
-   */
-  function fieldExists(addressForm, addressType) {
-    const fieldId = `${addressType}-${config.fieldId}`;
-    return addressForm.querySelector(`#${fieldId}`) !== null;
-  }
-
-  /**
-   * Find the address_1 field in the form
-   * @param {HTMLElement} addressForm - The address form container
-   * @returns {HTMLElement|null} The address_1 field or null
-   */
-  function findAddress1Field(addressForm) {
-    let address1Field = addressForm.querySelector(
-      'input[autocomplete="address-line1"]'
-    );
-
-    if (!address1Field) {
-      address1Field = addressForm.querySelector('input[id*="address_1"]');
-    }
-
-    if (!address1Field) {
-      address1Field = addressForm.querySelector('input[name*="address_1"]');
-    }
-
-    if (!address1Field) {
-      address1Field = addressForm.querySelector(
-        '[data-field-name*="address_1"]'
-      );
-    }
-    return address1Field;
-  }
-
-  /**
-   * Find the container of the address_1 field
-   * @param {HTMLElement} address1Field - The address_1 field
-   * @returns {HTMLElement|null} The container of the address_1 field or null
-   */
-  function findAddress1Container(address1Field) {
-    if (!address1Field) {
-      return null;
-    }
-
-    let address1Container = address1Field.closest(
-      '.wc-block-components-address-form__address_1'
-    );
-
-    if (!address1Container) {
-      address1Container = address1Field.closest(
-        '.wc-block-components-text-input.wc-block-components-address-form__address_1'
-      );
-    }
-
-    if (!address1Container) {
-      address1Container = address1Field.closest(
-        '.wc-block-components-text-input'
-      );
-    }
-
-    if (!address1Container) {
-      address1Container = address1Field.closest(
-        '.wc-block-components-address-form__field'
-      );
-    }
-
-    if (!address1Container) {
-      address1Container = address1Field.parentElement;
-    }
-    return address1Container;
-  }
-
-  /**
-   * Find the target container (address_1 field) to position our field before it
-   * @param {HTMLElement} addressForm - The address form container
-   * @returns {HTMLElement|null} The target container or null
-   */
-  function findTargetContainer(addressForm) {
-    const autocompleteContainer = addressForm.querySelector(
-      '.wc-block-components-address-autocomplete-container'
-    );
-    if (autocompleteContainer && autocompleteContainer.parentNode) {
-      return autocompleteContainer;
-    }
-    const address1Field = findAddress1Field(addressForm);
-    return findAddress1Container(address1Field);
-  }
-
-  /**
-   * Inject address search fields into checkout forms
-   */
-  function injectAddressSearchFields() {
-    const checkoutBlock = document.querySelector('.wc-block-checkout');
-    if (!checkoutBlock) {
-      return false;
-    }
-
-    const addressForms = checkoutBlock.querySelectorAll(
-      '.wc-block-components-address-form'
-    );
-
-    if (addressForms.length === 0) {
-      return false;
-    }
-
-    let injected = false;
-
-    addressForms.forEach((addressForm) => {
-      let addressType = 'billing';
-      if (
-        addressForm.closest('.wc-block-components-shipping-address') ||
-        addressForm.querySelector('input[id*="shipping"]') ||
-        addressForm.querySelector('input[name*="shipping"]')
-      ) {
-        addressType = 'shipping';
-      }
-
-      if (fieldExists(addressForm, addressType)) {
-        return;
-      }
-
-      const targetContainer = findTargetContainer(addressForm);
-      if (!targetContainer || !targetContainer.parentNode) {
-        return;
-      }
-      const fieldContainer = createAddressSearchField(addressType);
-      targetContainer.parentNode.insertBefore(fieldContainer, targetContainer);
-      injected = true;
-    });
-
-    return injected;
-  }
-
+/**
+ * Utility object for interacting with WordPress API
+ */
+const wc_checkout = {
   /**
    * Check if "Use same address for billing" checkbox is checked
-   * Uses WooCommerce Blocks Store API instead of DOM selectors for better maintainability
    * @returns {boolean} True if checkbox is checked
    */
-  function isBillingSameAsShipping() {
-    if (typeof wp === 'undefined' || !wp.data || !wp.data.select) {
+  isBillingSameAsShipping() {
+    if (typeof wp === 'undefined' || !wp.data?.select) {
       return false;
     }
 
@@ -232,6 +37,7 @@ function initialiseSwiftcompleteFields(config) {
         return false;
       }
 
+      // Try multiple method names for compatibility
       if (typeof checkoutStore.getUseShippingAsBilling === 'function') {
         return checkoutStore.getUseShippingAsBilling();
       }
@@ -240,38 +46,569 @@ function initialiseSwiftcompleteFields(config) {
         return checkoutStore.getBillingSameAsShipping();
       }
 
+      // Fallback to state inspection
       const state = checkoutStore.getState();
-      if (state && typeof state.useShippingAsBilling !== 'undefined') {
+      if (state?.useShippingAsBilling !== undefined) {
         return state.useShippingAsBilling;
       }
-
       return false;
     } catch (e) {
       return false;
     }
-  }
+  },
 
   /**
-   * Get current field values
-   * @returns {Object} Object with billing and shipping values
+   * Subscribe to changes in the "Use same address for billing" state
+   * @param {Function} callback - Function to call when state changes. Receives (currentValue, previousValue) as arguments
+   * @returns {Function|null} Unsubscribe function or null if subscription failed
    */
-  function getFieldValues() {
-    const checkoutBlock = document.querySelector('.wc-block-checkout');
-    if (!checkoutBlock) {
-      return { billing: null, shipping: null };
+  subscribe(callback) {
+    if (
+      typeof wp === 'undefined' ||
+      typeof wp.data === 'undefined' ||
+      typeof wp.data.subscribe !== 'function' ||
+      typeof callback !== 'function'
+    ) {
+      return null;
     }
 
-    const billingField = checkoutBlock.querySelector(
-      `#billing-${config.fieldId}`
-    );
-    const shippingField = checkoutBlock.querySelector(
-      `#shipping-${config.fieldId}`
-    );
+    let previousValue = null;
+    let isInitialized = false;
+    const self = this;
+    const unsubscribe = wp.data.subscribe(function () {
+      try {
+        const currentValue = self.isBillingSameAsShipping();
+        if (isInitialized && previousValue !== currentValue) {
+          const oldValue = previousValue;
+          previousValue = currentValue;
+          try {
+            callback(currentValue, oldValue);
+          } catch (callbackError) {
+            console.warn('Swiftcomplete: Callback error in subscribe:', callbackError);
+          }
+        } else if (!isInitialized) {
+          previousValue = currentValue;
+          isInitialized = true;
+        }
+      } catch (e) {
+        // Silently handle expected errors during initial page load when wp.data is not fully initialized
+      }
+    });
 
-    const shippingValue = shippingField ? shippingField.value.trim() : null;
-    let billingValue = billingField ? billingField.value.trim() : null;
+    return unsubscribe;
+  },
+};
 
-    if (isBillingSameAsShipping() && shippingValue) {
+/**
+ * Utility object for creating and managing checkout form fields
+ */
+const wc_checkout_field = {
+  // Cache DOM queries (can be invalidated if DOM changes)
+  checkoutBlockCache: null,
+  // Field IDs - initialized once, accessed directly
+  what3wordsFieldId: null,
+  addressSearchFieldId: null,
+
+  /**
+   * Get or cache the checkout block element
+   * @param {boolean} forceRefresh - Force refresh of the cache
+   * @returns {HTMLElement|null} The checkout block element
+   */
+  getCheckoutBlock(forceRefresh = false) {
+    if (forceRefresh || !this.checkoutBlockCache) {
+      this.checkoutBlockCache = document.querySelector(FIELD_DEFAULTS.CHECKOUT_BLOCK_SELECTOR);
+    }
+    return this.checkoutBlockCache;
+  },
+
+  /**
+   * Create the label HTML element
+   * @param {string} fieldId - The field ID to associate with
+   * @param {string} fieldLabel - The label text
+   * @returns {HTMLElement} The label element
+   */
+  createLabel(fieldId, fieldLabel) {
+    const label = document.createElement('label');
+    label.setAttribute('for', fieldId);
+    label.className = 'wc-block-components-text-input__label';
+    label.textContent = fieldLabel;
+    return label;
+  },
+
+  /**
+   * Create the input HTML element
+   * @param {string} fieldId - The field ID
+   * @param {Object} options - Input options (type, dataName, readonly)
+   * @returns {HTMLElement} The input element
+   */
+  createInput(fieldId, options = {}) {
+    const input = document.createElement('input');
+    input.type = options.type || 'text';
+    input.id = fieldId;
+    input.className = 'wc-block-components-text-input__input';
+    input.setAttribute('autocomplete', 'off');
+
+    if (options.dataName) {
+      input.setAttribute('data-field-name', options.dataName);
+    }
+
+    if (options.readonly === true) {
+      input.readOnly = true;
+    }
+
+    return input;
+  },
+
+  /**
+   * Setup the event listeners for the input element
+   * @param {HTMLElement} container - The container element
+   * @param {HTMLElement} input - The input element
+   */
+  setupInputEventListeners(container, input) {
+    const syncActiveState = () => {
+      const hasValue = input.value.trim().length > 0;
+      const hasFocus = document.activeElement === input;
+      container.classList.toggle('is-active', hasFocus || hasValue);
+    };
+
+    const events = ['focus', 'blur', 'input'];
+    events.forEach((eventType) => {
+      input.addEventListener(eventType, syncActiveState);
+    });
+
+    // Set initial state
+    syncActiveState();
+  },
+  /**
+   * Create the address search field HTML element
+   * @param {string} addressType - 'billing' or 'shipping'
+   * @param {string} fieldId - The field ID suffix
+   * @param {string|null} dataFieldName - Optional data field name suffix
+   * @param {Object} options - Additional options (label, readonly, value)
+   * @returns {HTMLElement} The field container element
+   */
+  createCheckoutField(
+    addressType,
+    fieldId,
+    dataFieldName = null,
+    options = {}
+  ) {
+    const fullFieldId = `${addressType}-${fieldId}`;
+    const fieldLabel = options.label || FIELD_DEFAULTS.DEFAULT_SEARCH_FIELD_LABEL;
+
+    const container = document.createElement('div');
+    container.className = `wc-block-components-text-input wc-block-components-address-form__${fieldId}`;
+
+    const label = this.createLabel(fullFieldId, fieldLabel);
+
+    const inputOptions = {
+      readonly: options.readonly === true,
+    };
+
+    if (dataFieldName) {
+      inputOptions.dataName = `${addressType}/${dataFieldName}`;
+    }
+
+    const input = this.createInput(fullFieldId, inputOptions);
+
+    if (options.value) {
+      input.value = options.value;
+    }
+
+    this.setupInputEventListeners(container, input);
+
+    container.appendChild(input);
+    container.appendChild(label);
+
+    return container;
+  },
+
+  /**
+   * Check if field already exists in the form
+   * @param {HTMLElement} addressForm - The address form container
+   * @param {string} fieldId - The field ID suffix to check
+   * @returns {boolean} True if field exists
+   */
+  fieldExists(addressForm, fieldId) {
+    if (!addressForm?.id) {
+      return false;
+    }
+    const selector = `#${addressForm.id}-${fieldId}`;
+    return addressForm.querySelector(selector) !== null;
+  },
+
+  /**
+   * Get a field element by address type
+   * @param {string} addressType - 'billing' or 'shipping'
+   * @param {string} fieldId - The field ID suffix
+   * @returns {HTMLElement|null} The field element
+   */
+  getField(addressType, fieldId) {
+    const block = this.getCheckoutBlock();
+    if (!block) {
+      return null;
+    }
+    const addressForm = block.querySelector(`#${addressType}`);
+    if (!addressForm) {
+      return null;
+    }
+    // Query for both input and select elements
+    const field = addressForm.querySelector(`input[id$='${fieldId}'], select[id$='${fieldId}']`);
+    if (!field) {
+      return null;
+    }
+    if (field.classList.contains(`wc-block-components-address-form__${fieldId}-hidden-input`)) {
+      return null;
+    }
+    return field;
+  },
+  /**
+     * Find a field in address fields array by field ID
+     * @param {Array} addressFields - Array of field objects
+     * @param {string} addressType - 'billing' or 'shipping'
+     * @param {string} fieldId - The field ID suffix
+     * @returns {Object|undefined} Field object or undefined if not found
+     */
+  findField(addressFields, addressType, fieldId) {
+    return addressFields.find((f) => f.field.id === `${addressType}-${fieldId}`);
+  },
+  /**
+     * Get a field element and its container by address type and field ID
+     * @param {string} addressType - 'billing' or 'shipping'
+     * @param {string} fieldId - The field ID suffix
+     * @returns {Object|null} Object with {container, field} or null if not found
+     */
+  getFieldWithContainer(addressType, fieldId) {
+    const field = this.getField(addressType, fieldId);
+    if (!field) {
+      return null;
+    }
+
+    const selector = `${COMPONENT_DEFAULTS.ADDRESS_FORM_SELECTOR}${fieldId}`;
+    // Check for existing autocomplete container first
+    const autocompleteContainer = field.closest('.wc-block-components-address-autocomplete-container');
+    if (autocompleteContainer?.parentNode) {
+      return { container: autocompleteContainer, field };
+    }
+    const container = field.closest(selector) || field.parentNode;
+    if (!container) {
+      return null;
+    }
+    return { container, field };
+  },
+
+  /**
+   * Get all address forms from the checkout block
+   * @returns {NodeList|null} List of address form elements or null if checkout block not found
+   */
+  getAddressForms() {
+    const checkoutBlock = this.getCheckoutBlock();
+    if (!checkoutBlock) {
+      return null;
+    }
+    const formClass = FIELD_DEFAULTS.ADDRESS_FORM_SELECTOR.substring(1);
+    const selector = FIELD_DEFAULTS.ADDRESS_TYPES.map((type) => `#${type}.${formClass}`).join(', ');
+    return checkoutBlock.querySelectorAll(selector);
+  },
+
+  /**
+   * Find the container element for a field
+   * @param {HTMLElement} addressForm - The address form container
+   * @param {string} fieldId - The field ID suffix
+   * @returns {HTMLElement|null} The container element or null if not found
+   */
+  findFieldContainer(addressForm, fieldId) {
+    if (!addressForm || !fieldId) {
+      return null;
+    }
+
+    // Check for existing autocomplete container first
+    const autocompleteContainer = addressForm.querySelector('.wc-block-components-address-autocomplete-container');
+    if (autocompleteContainer?.parentNode) {
+      return autocompleteContainer;
+    }
+
+    const field = addressForm.querySelector(`input[id$='${fieldId}']`);
+    if (!field) {
+      return null;
+    }
+
+    // Find the container using multiple selector strategies
+    const containerSelectors = [
+      `.wc-block-components-address-form__${fieldId}`,
+      `.wc-block-components-text-input.wc-block-components-address-form__${fieldId}`,
+      '.wc-block-components-text-input',
+    ];
+
+    return containerSelectors.map((selector) => field.closest(selector)).find(Boolean) || field.parentElement;
+  },
+
+  /**
+   * Inject fields into address forms using a callback function
+   * @param {Function} callback - Function to inject fields (receives addressForm, fieldId)
+   * @param {string} fieldId - Field ID to check for existence and pass to callback
+   * @returns {boolean} True if any field was injected
+   */
+  injectFields(callback, fieldId) {
+    if (typeof callback !== 'function' || !fieldId) {
+      return false;
+    }
+
+    const addressForms = this.getAddressForms();
+    if (!addressForms || addressForms.length === 0) {
+      return false;
+    }
+
+    let injected = false;
+    Array.from(addressForms).forEach((addressForm) => {
+      if (
+        !FIELD_DEFAULTS.ADDRESS_TYPES.includes(addressForm.id) ||
+        this.fieldExists(addressForm, fieldId)
+      ) {
+        return;
+      }
+
+      if (callback.call(this, addressForm, fieldId)) {
+        injected = true;
+      }
+    });
+
+    return injected;
+  },
+  /**
+   * Retry a condition check until it succeeds or max attempts are reached
+   * @param {Function} conditionFn - Function that returns true when condition is met
+   * @param {Function} successCallback - Function to call when condition is met
+   * @param {Function|null} failureCallback - Optional function to call when max attempts reached. Receives (attempts) as argument
+   * @param {Object} options - Optional configuration (maxAttempts, delay, errorMessage)
+   * @returns {Function} Cancel function to stop retrying
+   */
+  retryUntil(conditionFn, successCallback, failureCallback = null, options = {}) {
+    const maxAttempts = options.maxAttempts || FIELD_DEFAULTS.MAX_INJECTION_ATTEMPTS;
+    const delay = options.delay || FIELD_DEFAULTS.INJECTION_RETRY_DELAY;
+    const errorMessage = options.errorMessage || null;
+
+    let attempts = 0;
+    let cancelled = false;
+    let timeoutId = null;
+
+    function tryAttempt() {
+      if (cancelled) {
+        return;
+      }
+
+      attempts++;
+
+      if (conditionFn()) {
+        if (typeof successCallback === 'function') {
+          successCallback();
+        }
+        return;
+      }
+
+      if (attempts < maxAttempts) {
+        timeoutId = setTimeout(tryAttempt, delay);
+      } else if (typeof failureCallback === 'function') {
+        failureCallback(attempts);
+      } else if (errorMessage) {
+        console.warn(errorMessage);
+      }
+    }
+
+    // Start the retry loop
+    tryAttempt();
+
+    // Return cancel function
+    return function cancel() {
+      cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  },
+
+  /**
+   * Set up checkout form submit listener
+   * @param {Function} callback - Function to call on form submit
+   * @param {Object} setupState - Object to track setup state
+   * @returns {Function|null} Unsubscribe function or null
+   */
+  onCheckoutFormSubmit(callback, setupState) {
+    const block = this.getCheckoutBlock();
+    if (!block || typeof callback !== 'function') {
+      return null;
+    }
+
+    const form = block.querySelector('form');
+    if (!form) {
+      return null;
+    }
+
+    // Only set up listener once
+    if (!setupState.formSubmitListener) {
+      form.addEventListener('submit', callback);
+      setupState.formSubmitListener = true;
+    }
+
+    // Return unsubscribe function
+    return function () {
+      if (form && setupState.formSubmitListener) {
+        form.removeEventListener('submit', callback);
+        setupState.formSubmitListener = false;
+      }
+    };
+  },
+  /**
+   * Inject the address search field into an address form
+   * @param {HTMLElement} addressForm - The address form container
+   * @param {string} fieldId - The field ID suffix
+   * @returns {boolean} True if field was injected or already exists
+   */
+  injectAddressSearchField(addressForm, fieldId) {
+    if (!fieldId || this.fieldExists(addressForm, fieldId)) {
+      return !!fieldId;
+    }
+
+    const address1 = this.getFieldWithContainer(addressForm.id, 'address_1');
+    if (!address1?.container?.parentNode) {
+      return false;
+    }
+
+    const searchField = this.createCheckoutField(addressForm.id, fieldId);
+    address1.container.parentNode.insertBefore(searchField, address1.container);
+    return true;
+  },
+
+  /**
+   * Inject the what3words field into an address form (auto-initialization)
+   * @param {HTMLElement} addressForm - The address form container
+   * @param {string} fieldId - The field ID suffix
+   * @returns {boolean} True if field was injected or already exists
+   */
+  injectWhat3wordsField(addressForm, fieldId) {
+    if (!fieldId || this.fieldExists(addressForm, fieldId)) {
+      return !!fieldId;
+    }
+
+    const dataFieldName = fieldId.replace(/-/g, '/');
+    const what3wordsField = this.createCheckoutField(addressForm.id, fieldId, dataFieldName, {
+      label: 'what3words address',
+      readonly: true,
+      value: '',
+    });
+
+    what3wordsField.style.display = 'none';
+    addressForm.appendChild(what3wordsField);
+    return true;
+  },
+
+  /**
+   * Get what3words field element by address type
+   * @param {string} addressType - 'billing' or 'shipping'
+   * @returns {HTMLElement|null} The what3words field element
+   */
+  getWhat3wordsField(addressType) {
+    if (!this.what3wordsFieldId) {
+      return null;
+    }
+    return this.getField(addressType, this.what3wordsFieldId);
+  },
+
+  /**
+   * Update what3words field value and visibility
+   * Field is auto-injected, so we just update its value and show/hide it
+   * @param {string} addressType - 'billing' or 'shipping'
+   * @param {string|null} value - The what3words value to set (null/empty to hide)
+   * @returns {boolean} True if field was updated successfully
+   */
+  updateWhat3wordsField(addressType, value) {
+    if (!this.what3wordsFieldId) {
+      return false;
+    }
+
+    const field = this.getWhat3wordsField(addressType);
+    const container = field?.closest('.wc-block-components-text-input');
+    if (!field || !container) {
+      return false;
+    }
+
+    const trimmedValue = value?.trim();
+    if (trimmedValue) {
+      field.value = trimmedValue;
+      container.style.display = 'block';
+    } else {
+      field.value = '';
+      container.style.display = 'none';
+    }
+
+    return true;
+  },
+
+  /**
+   * Set what3words value for a specific address type (billing or shipping)
+   * Updates field value and visibility, respects isBillingSameAsShipping state
+   * @param {string} addressType - 'billing' or 'shipping'
+   * @param {string|null} value - The what3words value (null/empty to hide field)
+   * @param {boolean} syncToBilling - If true and addressType is 'shipping', sync to billing when checkbox is checked
+   * @returns {boolean} True if value was set successfully
+   */
+  setWhat3wordsValue(addressType, value, syncToBilling = true) {
+    if (!FIELD_DEFAULTS.ADDRESS_TYPES.includes(addressType)) {
+      return false;
+    }
+
+    const success = this.updateWhat3wordsField(addressType, value);
+
+    // Sync shipping to billing when checkbox is checked
+    if (success && addressType === 'shipping' && syncToBilling && wc_checkout.isBillingSameAsShipping()) {
+      this.setWhat3wordsValue('billing', value, false);
+    }
+
+    return success;
+  },
+
+  /**
+   * Sync what3words billing field from shipping field
+   * Called when isBillingSameAsShipping checkbox is checked
+   * @returns {boolean} True if sync was successful or no action needed
+   */
+  syncWhat3wordsBillingFromShipping() {
+    if (!wc_checkout.isBillingSameAsShipping()) {
+      return true;
+    }
+
+    const shippingField = this.getWhat3wordsField('shipping');
+    const shippingValue = shippingField?.value?.trim() || null;
+    return this.setWhat3wordsValue('billing', shippingValue, false);
+  },
+};
+
+/**
+   * What3words field manager
+   * Handles value updates and syncing of what3words fields
+   * Exposed globally for use by address selection handlers
+   */
+const w3w_field = {
+  /**
+   * Get what3words value for an address type
+   * @param {string} addressType - 'billing' or 'shipping'
+   * @returns {string|null} The what3words value or null if not set
+   */
+  getValue(addressType) {
+    const field = wc_checkout_field.getWhat3wordsField(addressType);
+    return field?.value?.trim() || null;
+  },
+
+  /**
+   * Get all what3words values
+   * @returns {Object} Object with billing and shipping values
+   */
+  getValues() {
+    const shippingValue = this.getValue('shipping');
+    let billingValue = this.getValue('billing');
+
+    // Sync billing from shipping if checkbox is checked
+    if (wc_checkout.isBillingSameAsShipping() && shippingValue) {
       billingValue = shippingValue;
     }
 
@@ -279,231 +616,230 @@ function initialiseSwiftcompleteFields(config) {
       billing: billingValue,
       shipping: shippingValue,
     };
-  }
+  },
 
+  /**
+   * Set what3words value for an address type
+   * Updates field value and visibility
+   * @param {string} addressType - 'billing' or 'shipping'
+   * @param {string|null} value - The what3words value (e.g., '///filled.count.soap'), or null to clear
+   * @returns {boolean} True if value was set successfully
+   */
+  setValue(addressType, value) {
+    const success = wc_checkout_field.setWhat3wordsValue(addressType, value, true);
+    if (success) {
+      this.saveFieldExtensionData();
+    }
+    return success;
+  },
+
+  /**
+   * Clear what3words value for an address type (hides the field)
+   * @param {string} addressType - 'billing' or 'shipping'
+   * @returns {boolean} True if value was cleared successfully
+   */
+  removeValue(addressType) {
+    const success = wc_checkout_field.setWhat3wordsValue(addressType, null, true);
+    if (success) {
+      this.saveFieldExtensionData();
+    }
+    return success;
+  },
+
+  /**
+   * Sync billing what3words from shipping
+   * Called when isBillingSameAsShipping checkbox changes
+   * Handles cases where fields may not exist in DOM
+   */
+  syncBillingFromShipping() {
+    const synced = wc_checkout_field.syncWhat3wordsBillingFromShipping();
+    if (synced) {
+      this.saveFieldExtensionData();
+    }
+  },
   /**
    * Save field values to the extension data
    */
-  function saveFieldExtensionData() {
-    const values = getFieldValues();
-    const checkoutBlock = document.querySelector('.wc-block-checkout');
-    if (checkoutBlock) {
-      const form = checkoutBlock.querySelector('form');
-      if (form) {
-        wp.data
-          .dispatch('wc/store/checkout')
-          .setExtensionData('swiftcomplete', {
-            billing_address_search: values.billing || null,
-            shipping_address_search: values.shipping || null,
-          });
+  saveFieldExtensionData() {
+    try {
+      const block = wc_checkout_field.getCheckoutBlock();
+      const form = block?.querySelector('form');
+
+      if (form && typeof wp !== 'undefined' && wp.data?.dispatch) {
+        const w3wValues = this.getValues();
+        wp.data.dispatch('wc/store/checkout').setExtensionData('swiftcomplete', {
+          billing_what3words: w3wValues.billing || null,
+          shipping_what3words: w3wValues.shipping || null,
+        });
       }
+    } catch (e) {
+      console.warn('Swiftcomplete: Failed to save field extension data', e);
     }
   }
+};
 
+const sc_init = {
+  config: null,
   /**
    * Hook into checkout submission to capture field values
-   * @param {WeakSet} fieldsWithListeners - Set to track fields with listeners
-   * @param {Object} setupState - Object to track setup state (formSubmitListener, wpDataSubscription)
+   * @param {Object} setupState - Object to track setup state
    */
-  function setupCheckoutSubmission(fieldsWithListeners, setupState) {
-    const checkoutBlock = document.querySelector('.wc-block-checkout');
-    if (!checkoutBlock) {
-      return;
+  setupCheckoutSubmission(setupState) {
+    // Setup form submit listener
+    const unsubscribeForm = wc_checkout_field.onCheckoutFormSubmit(w3w_field.saveFieldExtensionData, setupState);
+    if (unsubscribeForm) {
+      setupState.unsubscribeFormSubmit = unsubscribeForm;
     }
-
-    const form = checkoutBlock.querySelector('form');
-    if (form && !setupState.formSubmitListener) {
-      form.addEventListener('submit', () => {
-        saveFieldExtensionData();
-      });
-      setupState.formSubmitListener = true;
-    }
-
-    const billingField = checkoutBlock.querySelector(
-      `#billing-${config.fieldId}`
-    );
-    const shippingField = checkoutBlock.querySelector(
-      `#shipping-${config.fieldId}`
-    );
-
-    const syncBillingFromShipping = () => {
-      const currentBillingField = checkoutBlock.querySelector(
-        `#billing-${config.fieldId}`
-      );
-      const currentShippingField = checkoutBlock.querySelector(
-        `#shipping-${config.fieldId}`
-      );
-      if (
-        isBillingSameAsShipping() &&
-        currentShippingField &&
-        currentBillingField
-      ) {
-        currentBillingField.value = currentShippingField.value;
-        currentBillingField.dispatchEvent(
-          new Event('input', { bubbles: true })
-        );
-      }
-      saveFieldExtensionData();
-    };
 
     // Setup wp.data subscription only once
-    if (
-      wp &&
-      typeof wp.data !== 'undefined' &&
-      typeof wp.data.subscribe === 'function' &&
-      !setupState.wpDataSubscription
-    ) {
-      setupState.wpDataSubscription = true;
-      let previousUseShippingAsBilling = null;
-      wp.data.subscribe(() => {
-        try {
-          const currentUseShippingAsBilling = isBillingSameAsShipping();
-
-          if (previousUseShippingAsBilling !== currentUseShippingAsBilling) {
-            previousUseShippingAsBilling = currentUseShippingAsBilling;
-            if (currentUseShippingAsBilling) {
-              // When billing form appears, setup listeners for the billing field
-              setTimeout(() => {
-                setupCheckoutSubmission(fieldsWithListeners, setupState);
-                syncBillingFromShipping();
-              }, 100);
-            }
-          }
-        } catch (e) {
-          // This is expected during initial page load when wp.data is not fully initialized
+    if (!setupState.wpDataSubscription) {
+      const unsubscribe = wc_checkout.subscribe((currentValue) => {
+        if (currentValue) {
+          setTimeout(() => {
+            sc_init.setupCheckoutSubmission(setupState);
+            w3w_field.syncBillingFromShipping();
+          }, FIELD_DEFAULTS.SYNC_DELAY);
         }
       });
 
-      if (isBillingSameAsShipping()) {
-        syncBillingFromShipping();
+      if (unsubscribe) {
+        setupState.wpDataSubscription = true;
+        setupState.unsubscribeUseShippingAsBilling = unsubscribe;
+      }
+
+      // Initial sync if billing is already same as shipping
+      if (wc_checkout.isBillingSameAsShipping()) {
+        w3w_field.syncBillingFromShipping();
       }
     }
+  },
+  /**
+   * Attempt to inject fields into the checkout forms
+   * @returns {boolean} True if any field was injected
+   */
+  injectedFields() {
+    const injections = [];
 
-    // Setup billing field listeners if field exists and doesn't have listeners yet
-    if (billingField && !fieldsWithListeners.has(billingField)) {
-      fieldsWithListeners.add(billingField);
-      billingField.addEventListener('input', () => {
-        saveFieldExtensionData();
-      });
-      billingField.addEventListener('change', () => {
-        saveFieldExtensionData();
-      });
+    if (wc_checkout_field.addressSearchFieldId) {
+      injections.push(
+        wc_checkout_field.injectFields(
+          wc_checkout_field.injectAddressSearchField,
+          wc_checkout_field.addressSearchFieldId
+        )
+      );
     }
 
-    // Setup shipping field listeners if field exists and doesn't have listeners yet
-    if (shippingField && !fieldsWithListeners.has(shippingField)) {
-      fieldsWithListeners.add(shippingField);
-      shippingField.addEventListener('input', () => {
-        const currentBillingField = checkoutBlock.querySelector(
-          `#billing-${config.fieldId}`
-        );
-        if (isBillingSameAsShipping() && currentBillingField) {
-          currentBillingField.value = shippingField.value;
-          currentBillingField.dispatchEvent(
-            new Event('input', { bubbles: true })
-          );
-        }
-        saveFieldExtensionData();
-      });
-      shippingField.addEventListener('change', () => {
-        const currentBillingField = checkoutBlock.querySelector(
-          `#billing-${config.fieldId}`
-        );
-        if (isBillingSameAsShipping() && currentBillingField) {
-          currentBillingField.value = shippingField.value;
-          currentBillingField.dispatchEvent(
-            new Event('input', { bubbles: true })
-          );
-        }
-        saveFieldExtensionData();
-      });
+    if (this.config?.w3wEnabled === true && wc_checkout_field.what3wordsFieldId) {
+      injections.push(
+        wc_checkout_field.injectFields(
+          wc_checkout_field.injectWhat3wordsField,
+          wc_checkout_field.what3wordsFieldId
+        )
+      );
     }
-  }
 
+    return injections.some((result) => result);
+  },
+
+  /**
+   * Check if a node is or contains an address form
+   * @param {Node} node - The node to check
+   * @returns {boolean} True if node is or contains an address form
+   */
+  isAddressFormNode(node) {
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      return false;
+    }
+    const formClass = 'wc-block-components-address-form';
+    return (
+      node.classList?.contains(formClass) || node.querySelector?.(`.${formClass}`) !== null
+    );
+  },
   /**
    * Initialize the address search field injection
    */
-  function init() {
-    // Track which fields have event listeners attached to prevent duplicates
-    const fieldsWithListeners = new WeakSet();
-    // Track setup state to prevent duplicate listeners
+  init() {
     const setupState = {
       formSubmitListener: false,
       wpDataSubscription: false,
     };
 
-    let attempts = 0;
-    const maxAttempts = 20;
+    // Try to inject fields with retry logic
+    wc_checkout_field.retryUntil(
+      () => sc_init.injectedFields(),
+      () => sc_init.setupCheckoutSubmission(setupState)
+    );
 
-    function tryInjection() {
-      attempts++;
-      const success = injectAddressSearchFields();
+    /**
+     * Handle mutations in the checkout block
+     */
+    const observerOptions = {
+      childList: true,
+      subtree: true,
+    };
 
-      if (!success && attempts < maxAttempts) {
-        setTimeout(tryInjection, 200);
-      } else if (success) {
-        setupCheckoutSubmission(fieldsWithListeners, setupState);
-      }
-    }
+    const observer = new MutationObserver((mutations) => {
+      const shouldReinject = mutations.some((mutation) =>
+        Array.from(mutation.addedNodes).some(sc_init.isAddressFormNode)
+      );
 
-    tryInjection();
-
-    const observer = new MutationObserver(function (mutations) {
-      let shouldReinject = false;
-      mutations.forEach(function (mutation) {
-        if (mutation.addedNodes.length > 0) {
-          mutation.addedNodes.forEach((node) => {
-            if (
-              node.nodeType === 1 &&
-              (node.classList.contains('wc-block-components-address-form') ||
-                node.querySelector('.wc-block-components-address-form'))
-            ) {
-              shouldReinject = true;
-            }
-          });
-        }
-      });
       if (shouldReinject) {
         setTimeout(() => {
-          const injected = injectAddressSearchFields();
-          if (injected) {
-            setupCheckoutSubmission(fieldsWithListeners, setupState);
+          if (sc_init.injectedFields()) {
+            sc_init.setupCheckoutSubmission(setupState);
           }
-        }, 100);
+        }, FIELD_DEFAULTS.REINJECTION_DELAY);
       }
     });
 
-    const checkoutBlock = document.querySelector('.wc-block-checkout');
-    if (checkoutBlock) {
-      observer.observe(checkoutBlock, {
-        childList: true,
-        subtree: true,
-      });
+    // Setup observer for checkout block
+    const block = wc_checkout_field.getCheckoutBlock();
+    if (block) {
+      observer.observe(block, observerOptions);
     } else {
-      const blockObserver = new MutationObserver(function () {
-        const block = document.querySelector('.wc-block-checkout');
-        if (block) {
-          observer.observe(block, {
-            childList: true,
-            subtree: true,
-          });
+      // If checkout block doesn't exist yet, watch for it
+      const blockObserver = new MutationObserver(() => {
+        const foundBlock = wc_checkout_field.getCheckoutBlock(true);
+        if (foundBlock) {
+          observer.observe(foundBlock, observerOptions);
           blockObserver.disconnect();
-          setTimeout(() => {
-            tryInjection();
-          }, 100);
+          setTimeout(tryInjection, FIELD_DEFAULTS.REINJECTION_DELAY);
         }
       });
 
-      blockObserver.observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
+      blockObserver.observe(document.body, observerOptions);
     }
   }
+}
 
+/**
+ * Initialise Swiftcomplete fields (e.g.: address search field, what3words)
+ * - Blocks checkout specific code
+ * @param {Object} config - Configuration object with fieldId, and w3wEnabled
+ */
+function initialiseSwiftcompleteFields(config) {
+  // Check browser compatibility before initializing
+  if (typeof sc_compat !== 'undefined' && !sc_compat.supported) {
+    console.warn('Swiftcomplete: Browser not compatible. Skipping initialization.');
+    return;
+  }
+
+  if (!config) {
+    console.warn('Swiftcomplete: Invalid configuration provided');
+    return;
+  }
+  sc_init.config = config;
+  // Initialize field IDs once - store them on the objects that need them
+  if (typeof COMPONENT_DEFAULTS !== 'undefined') {
+    wc_checkout_field.what3wordsFieldId = COMPONENT_DEFAULTS.WHAT3WORDS_FIELD_ID || null;
+    wc_checkout_field.addressSearchFieldId = COMPONENT_DEFAULTS.ADDRESS_SEARCH_FIELD_ID || null;
+  }
+  console.log('Swiftcomplete: Setting up fields', config);
+
+  // Initialize when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', sc_init.init);
   } else {
-    init();
+    sc_init.init();
   }
 }

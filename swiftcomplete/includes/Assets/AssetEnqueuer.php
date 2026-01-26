@@ -123,17 +123,59 @@ class AssetEnqueuer implements AssetEnqueuerInterface
      */
     private function enqueue_scripts(): void
     {
+        // Enqueue browser compatibility check first (no dependencies)
+        $this->enqueue_browser_compatibility();
+
         if (!wp_script_is('swiftcomplete-component', 'enqueued')) {
             wp_enqueue_script(
                 'swiftcomplete-component',
                 'https://assets.swiftcomplete.com/js/swiftlookup.js',
-                array(),
+                array('swiftcomplete-browser-support'),
                 $this->version,
                 true
             );
         }
         $this->enqueue_blocks_checkout_scripts();
         $this->enqueue_shortcode_checkout_scripts();
+        $this->enqueue_field_constants();
+
+    }
+
+    /**
+     * Enqueue browser compatibility check script
+     * This should load before all other Swiftcomplete scripts
+     *
+     * @return void
+     */
+    private function enqueue_browser_compatibility(): void
+    {
+        if (!wp_script_is('swiftcomplete-browser-support', 'enqueued')) {
+            wp_enqueue_script(
+                'swiftcomplete-browser-support',
+                $this->plugin_url . 'assets/js/support.js',
+                array(),
+                $this->version,
+                true
+            );
+        }
+    }
+
+    private function enqueue_field_constants(): void
+    {
+        $this->invoke_function_inline_script(
+            'swiftcomplete-checkout-fields',
+            'const COMPONENT_DEFAULTS = %s;',
+            array(
+                'ADDRESS_SEARCH_FIELD_ID' => FieldConstants::ADDRESS_SEARCH_FIELD_ID,
+                'WHAT3WORDS_FIELD_ID' => FieldConstants::WHAT3WORDS_FIELD_ID,
+                'STATE_UPDATE_DELAY' => 50,
+                'WHAT3WORDS_UPDATE_DELAY' => 50,
+                'WHAT3WORDS_VISIBILITY_DELAY' => 100,
+                'COUNTRY_CHANGE_DELAY' => 50,
+                'ADDRESS_FORM_SELECTOR' => '.wc-block-components-address-form__',
+            ),
+            'before'
+        );
     }
 
     /**
@@ -158,7 +200,7 @@ class AssetEnqueuer implements AssetEnqueuerInterface
         wp_enqueue_script(
             'swiftcomplete-checkout-fields',
             $this->plugin_url . 'assets/js/blocks/fields.js',
-            array('wp-hooks', 'wp-element', 'wc-blocks-checkout'),
+            array('swiftcomplete-browser-support', 'wp-hooks', 'wp-element', 'wc-blocks-checkout'),
             $this->version,
             true
         );
@@ -172,7 +214,7 @@ class AssetEnqueuer implements AssetEnqueuerInterface
         wp_enqueue_script(
             'swiftcomplete-component-loader',
             $this->plugin_url . 'assets/js/component-loader.js',
-            array('swiftcomplete-component', 'swiftcomplete-checkout-fields'),
+            array('swiftcomplete-browser-support', 'swiftcomplete-component', 'swiftcomplete-checkout-fields'),
             $this->version,
             true
         );
@@ -180,7 +222,7 @@ class AssetEnqueuer implements AssetEnqueuerInterface
         self::invoke_function_inline_script(
             'swiftcomplete-component-loader',
             'loadSwiftcompleteComponent(%s);',
-            $this->settings_manager->get_js_settings()
+            array('isBlocks' => true, 'settings' => $this->settings_manager->get_js_settings())
         );
     }
 
@@ -199,7 +241,7 @@ class AssetEnqueuer implements AssetEnqueuerInterface
         wp_enqueue_script(
             'swiftcomplete-component-loader',
             $this->plugin_url . 'assets/js/component-loader.js',
-            array('swiftcomplete-component'),
+            array('swiftcomplete-browser-support', 'swiftcomplete-component', 'jquery'),
             $this->version,
             true
         );
@@ -219,8 +261,7 @@ class AssetEnqueuer implements AssetEnqueuerInterface
     private function get_blocks_checkout_field_config(): array
     {
         return array(
-            'fieldId' => FieldConstants::ADDRESS_SEARCH_FIELD_ID,
-            'dataFieldNameSuffix' => FieldConstants::ADDRESS_SEARCH_DATA_FIELD_NAME_SUFFIX,
+            'w3wEnabled' => ($this->settings_manager->get_setting('w3w_enabled', false) === true),
         );
     }
 
@@ -232,9 +273,9 @@ class AssetEnqueuer implements AssetEnqueuerInterface
      * @param array $args The arguments to pass to the function
      * @return void
      */
-    private static function invoke_function_inline_script(string $handle, string $fn, array $args = array()): void
+    private static function invoke_function_inline_script(string $handle, string $fn, array $args = array(), string $position = 'after'): void
     {
         $script = sprintf($fn, wp_json_encode($args));
-        wp_add_inline_script($handle, $script, 'after');
+        wp_add_inline_script($handle, $script, $position);
     }
 }

@@ -62,11 +62,31 @@ class BlocksCheckout implements CheckoutInterface
     /**
      * Load Swiftcomplete data from request and save to order
      *
-     * @param \WC_Order      $order   Order object
-     * @param \WP_REST_Request $request Request object
-     * @return \WC_Order
+     * @param \WC_Order $order Order object
+     * @param array     $data  Extension data
+     * @return void
      */
-    public function save_extension_data_to_order(\WC_Order $order, \WP_REST_Request $request): \WC_Order
+    public function save_extension_data_to_order(\WC_Order $order, array $data): void
+    {
+        if (!isset($data['swiftcomplete']) || !is_array($data['swiftcomplete'])) {
+            return;
+        }
+        $swiftcomplete_data = $data['swiftcomplete'];
+
+        $billing_value = $this->extract_sanitized_value($swiftcomplete_data, 'billing_what3words');
+        $shipping_value = $this->extract_sanitized_value($swiftcomplete_data, 'shipping_what3words');
+        if ($billing_value) {
+            $this->meta_repository->save($order->get_id(), '_billing_' . $this->get_field_id(), $billing_value);
+            $this->meta_repository->save($order->get_id(), FieldConstants::get_blocks_billing_what3words_meta_key(), $billing_value);
+        }
+
+        if ($shipping_value) {
+            $this->meta_repository->save($order->get_id(), '_shipping_' . $this->get_field_id(), $shipping_value);
+            $this->meta_repository->save($order->get_id(), FieldConstants::get_blocks_shipping_what3words_meta_key(), $shipping_value);
+        }
+    }
+
+    public function extract_extension_data_from_request(\WP_REST_Request $request): array
     {
         $extension_data = $request->get_param('extensions');
         if (!is_array($extension_data)) {
@@ -82,24 +102,7 @@ class BlocksCheckout implements CheckoutInterface
                 }
             }
         }
-        if (!isset($extension_data['swiftcomplete']) || !is_array($extension_data['swiftcomplete'])) {
-            return $order;
-        }
-        $swiftcomplete_data = $extension_data['swiftcomplete'];
-
-        $billing_value = $this->extract_sanitized_value($swiftcomplete_data, 'billing_address_search');
-        $shipping_value = $this->extract_sanitized_value($swiftcomplete_data, 'shipping_address_search');
-        if ($billing_value) {
-            $this->meta_repository->save($order->get_id(), '_billing_' . $this->get_field_id(), $billing_value);
-            $this->meta_repository->save($order->get_id(), FieldConstants::get_billing_blocks_meta_key(), $billing_value);
-        }
-
-        if ($shipping_value) {
-            $this->meta_repository->save($order->get_id(), '_shipping_' . $this->get_field_id(), $shipping_value);
-            $this->meta_repository->save($order->get_id(), FieldConstants::get_shipping_blocks_meta_key(), $shipping_value);
-        }
-
-        return $order;
+        return $extension_data;
     }
 
     /**
@@ -118,13 +121,13 @@ class BlocksCheckout implements CheckoutInterface
     }
 
     /**
-     * Get the field ID for this strategy
+     * Get the field ID for this strategy (what3words)
      *
      * @return string
      */
     public function get_field_id(): string
     {
-        return str_replace('-', '_', FieldConstants::ADDRESS_SEARCH_FIELD_ID);
+        return str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID);
     }
 
     /**

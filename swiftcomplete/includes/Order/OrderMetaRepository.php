@@ -76,16 +76,16 @@ class OrderMetaRepository implements OrderMetaRepositoryInterface
     public function get_field_values_from_order(\WC_Order $order): array
     {
         // Try non-blocks meta keys first
-        $billing_value = $order->get_meta(FieldConstants::get_billing_meta_key(), true);
-        $shipping_value = $order->get_meta(FieldConstants::get_shipping_meta_key(), true);
+        $billing_value = $order->get_meta(FieldConstants::get_billing_what3words_meta_key(), true);
+        $shipping_value = $order->get_meta(FieldConstants::get_shipping_what3words_meta_key(), true);
 
         // Fallback to blocks meta keys
         if (empty($billing_value)) {
-            $billing_value = $order->get_meta(FieldConstants::get_billing_blocks_meta_key(), true);
+            $billing_value = $order->get_meta(FieldConstants::get_blocks_billing_what3words_meta_key(), true);
         }
 
         if (empty($shipping_value)) {
-            $shipping_value = $order->get_meta(FieldConstants::get_shipping_blocks_meta_key(), true);
+            $shipping_value = $order->get_meta(FieldConstants::get_blocks_shipping_what3words_meta_key(), true);
         }
 
         return array(

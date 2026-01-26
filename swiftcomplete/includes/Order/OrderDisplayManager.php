@@ -199,16 +199,16 @@ class OrderDisplayManager implements OrderDisplayInterface
         }
 
         // Fallback if repository doesn't have the method
-        $billing_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_billing_meta_key());
-        $shipping_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_shipping_meta_key());
+        $billing_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_billing_what3words_meta_key());
+        $shipping_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_shipping_what3words_meta_key());
 
         // Try blocks meta keys
         if (empty($billing_value)) {
-            $billing_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_billing_blocks_meta_key());
+            $billing_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_blocks_billing_what3words_meta_key());
         }
 
         if (empty($shipping_value)) {
-            $shipping_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_shipping_blocks_meta_key());
+            $shipping_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_blocks_shipping_what3words_meta_key());
         }
 
         return array(

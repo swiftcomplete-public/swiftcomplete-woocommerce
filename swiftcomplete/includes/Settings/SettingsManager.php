@@ -341,6 +341,23 @@ class SettingsManager
   }
 
   /**
+   * Get a setting value.
+   * Returns the value as stored (bool/string/etc). If the key doesn't exist, returns $default.
+   *
+   * @param string $key Setting key
+   * @param mixed  $default Default value if setting doesn't exist
+   * @return mixed
+   */
+  public function get_setting(string $key, $default = null)
+  {
+    $settings = get_option(self::SETTINGS_OPTION);
+    if (!is_array($settings)) {
+      $settings = array();
+    }
+    return array_key_exists($key, $settings) ? $settings[$key] : $default;
+  }
+
+  /**
    * Get settings formatted for JavaScript
    * Returns settings in a format ready to be passed to JavaScript
    *
@@ -363,7 +380,7 @@ class SettingsManager
     $search_for = $w3w_enabled ? 'address,what3words' : 'address';
 
     // Get hide fields setting
-    $hide_fields = isset($settings['hide_fields']) && $settings['hide_fields'] ? 'true' : 'false';
+    $hide_fields = isset($settings['hide_fields']) && $settings['hide_fields'] === true;
 
     // Get bias towards lat/lon
     $bias_lat_lon = isset($settings['bias_towards_lat_lon']) ? $settings['bias_towards_lat_lon'] : '';
@@ -373,10 +390,11 @@ class SettingsManager
     $shipping_placeholder = isset($settings['shipping_placeholder']) ? $settings['shipping_placeholder'] : '';
 
     // Get state/counties enabled
-    $state_counties = isset($settings['state_counties_enabled']) && $settings['state_counties_enabled'] ? 'true' : 'false';
+    $state_counties = isset($settings['state_counties_enabled']) && $settings['state_counties_enabled'] === true;
 
     return array(
       'api_key' => $api_key,
+      'w3w_enabled' => $w3w_enabled,
       'search_for' => $search_for,
       'hide_fields' => $hide_fields,
       'bias_lat_lon' => $bias_lat_lon,

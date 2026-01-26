@@ -34,8 +34,6 @@ if wp plugin is-active woocommerce; then
 else
   echo "⚠️ WooCommerce is not installed or activated. Proceeding with installation and activation."
 
-  wp option set blog_public 0
-
   echo "⚙️ Activating WooCommerce plugin..."
   wp plugin activate woocommerce
 
@@ -73,3 +71,8 @@ else
   echo "🕺 WooCommerce configuration complete!"
 fi
 
+echo "🌐 Setting site to live (removing Coming Soon mode)..."
+wp option update blog_public 1
+# Disable any maintenance mode that might be active
+wp maintenance-mode deactivate 2>/dev/null || true
+echo "✅ Site is now live!"

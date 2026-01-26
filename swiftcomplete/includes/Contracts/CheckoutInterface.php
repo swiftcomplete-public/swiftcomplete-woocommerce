@@ -18,10 +18,10 @@ interface CheckoutInterface
      * Save field value to order
      *
      * @param \WC_Order $order Order object
-     * @param \WP_REST_Request $request Request object
-     * @return \WC_Order Modified order object
+     * @param array $data Extension data
+     * @return void
      */
-    public function save_extension_data_to_order(\WC_Order $order, \WP_REST_Request $request): \WC_Order;
+    public function save_extension_data_to_order(\WC_Order $order, array $data): void;
 
     /**
      * Get the field ID for this strategy
