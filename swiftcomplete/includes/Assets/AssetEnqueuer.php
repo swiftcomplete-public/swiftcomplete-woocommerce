@@ -172,7 +172,6 @@ class AssetEnqueuer implements AssetEnqueuerInterface
                 'WHAT3WORDS_UPDATE_DELAY' => 50,
                 'WHAT3WORDS_VISIBILITY_DELAY' => 100,
                 'COUNTRY_CHANGE_DELAY' => 50,
-                'ADDRESS_FORM_SELECTOR' => '.wc-block-components-address-form__',
             ),
             'before'
         );
@@ -221,8 +220,11 @@ class AssetEnqueuer implements AssetEnqueuerInterface
 
         self::invoke_function_inline_script(
             'swiftcomplete-component-loader',
-            'loadSwiftcompleteComponent(%s);',
-            array('isBlocks' => true, 'settings' => $this->settings_manager->get_js_settings())
+            $this->checkout_type_identifier->is_order_received_page() ? 'repositionConfirmationFields()' : 'loadSwiftcompleteComponent(%s);',
+            $this->checkout_type_identifier->is_order_received_page() ? array() : array_merge(
+                array('isBlocks' => true),
+                $this->settings_manager->get_js_settings()
+            )
         );
     }
 
@@ -237,19 +239,39 @@ class AssetEnqueuer implements AssetEnqueuerInterface
             return;
         }
 
-        // Enqueue JavaScript to position the field before address_1
+        // Enqueue legacy fields script (shortcode checkout specific)
+        wp_enqueue_script(
+            'swiftcomplete-checkout-fields',
+            $this->plugin_url . 'assets/js/fields.js',
+            array('swiftcomplete-browser-support'),
+            $this->version,
+            true
+        );
+
+        // Initialize field IDs for legacy fields
+        self::invoke_function_inline_script(
+            'swiftcomplete-checkout-fields',
+            'if (typeof COMPONENT_DEFAULTS !== "undefined") { wc_checkout_field.what3wordsFieldId = COMPONENT_DEFAULTS.WHAT3WORDS_FIELD_ID || null; wc_checkout_field.addressSearchFieldId = COMPONENT_DEFAULTS.ADDRESS_SEARCH_FIELD_ID || null; }',
+            array(),
+            'after'
+        );
+
+        // Enqueue component loader
         wp_enqueue_script(
             'swiftcomplete-component-loader',
             $this->plugin_url . 'assets/js/component-loader.js',
-            array('swiftcomplete-browser-support', 'swiftcomplete-component', 'jquery'),
+            array('swiftcomplete-browser-support', 'swiftcomplete-component', 'swiftcomplete-checkout-fields'),
             $this->version,
             true
         );
 
         self::invoke_function_inline_script(
             'swiftcomplete-component-loader',
-            'loadSwiftcompleteComponent(%s);',
-            $this->settings_manager->get_js_settings()
+            $this->checkout_type_identifier->is_order_received_page() ? 'repositionConfirmationFields()' : 'loadSwiftcompleteComponent(%s);',
+            $this->checkout_type_identifier->is_order_received_page() ? array() : array_merge(
+                array('isBlocks' => false),
+                $this->settings_manager->get_js_settings()
+            )
         );
     }
 
@@ -260,8 +282,46 @@ class AssetEnqueuer implements AssetEnqueuerInterface
      */
     private function get_blocks_checkout_field_config(): array
     {
-        return array(
+        $config = array(
             'w3wEnabled' => ($this->settings_manager->get_setting('w3w_enabled', false) === true),
+        );
+
+        // Add customer values if user is logged in
+        $customer_values = $this->get_customer_what3words_values();
+        if (!empty($customer_values['billing']) || !empty($customer_values['shipping'])) {
+            $config['customerValues'] = $customer_values;
+        }
+
+        return $config;
+    }
+
+    /**
+     * Get customer what3words values for logged-in user
+     *
+     * @return array{billing: string, shipping: string} Customer values
+     */
+    private function get_customer_what3words_values(): array
+    {
+        $billing_value = '';
+        $shipping_value = '';
+
+        if (is_user_logged_in()) {
+            $user_id = get_current_user_id();
+            $field_id = str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID);
+            $billing_key = '_billing_' . $field_id;
+            $shipping_key = '_shipping_' . $field_id;
+
+            $billing_value = get_user_meta($user_id, $billing_key, true);
+            $shipping_value = get_user_meta($user_id, $shipping_key, true);
+
+            // Sanitize values
+            $billing_value = $billing_value ? sanitize_text_field($billing_value) : '';
+            $shipping_value = $shipping_value ? sanitize_text_field($shipping_value) : '';
+        }
+
+        return array(
+            'billing' => $billing_value,
+            'shipping' => $shipping_value,
         );
     }
 

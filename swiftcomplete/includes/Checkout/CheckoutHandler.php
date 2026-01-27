@@ -76,6 +76,8 @@ class CheckoutHandler
             // Register fields filter
             $this->hook_manager->register_filter('woocommerce_checkout_fields', array($shortcode_checkout, 'register_fields'), 10, 1);
             $this->hook_manager->register_filter('woocommerce_form_field', array($shortcode_checkout, 'remove_optional_fields_label'), 10, 4);
+            // Register filter to pre-fill customer values
+            $this->hook_manager->register_filter('woocommerce_checkout_get_value', array($this, 'get_customer_checkout_value'), 10, 2);
             // Register save action for shortcode checkout, this hook passes order ID and checkout data
             $this->hook_manager->register_action('woocommerce_checkout_update_order_meta', array($this, 'save_extension_data_to_order'), 5, 2);
         }
@@ -126,6 +128,26 @@ class CheckoutHandler
             $blocks_checkout->save_extension_data_to_order($order, $data);
         }
         return $order;
+    }
+
+    /**
+     * Get customer checkout value for shortcode checkout
+     * Wrapper for woocommerce_checkout_get_value filter
+     *
+     * @param string|null $value Current field value
+     * @param string      $input Field key
+     * @return string|null
+     */
+    public function get_customer_checkout_value($value, string $input)
+    {
+        $shortcode_checkout = $this->get_checkout('shortcode');
+        if ($shortcode_checkout instanceof ShortcodeCheckout) {
+            $customer_value = $shortcode_checkout->get_customer_field_value($input);
+            if ($customer_value !== null) {
+                return $customer_value;
+            }
+        }
+        return $value;
     }
 
     /**

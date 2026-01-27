@@ -91,4 +91,24 @@ class CheckoutTypeIdentifier
     $checkout_page = get_post($checkout_page_id);
     return $checkout_page && has_shortcode($checkout_page->post_content, 'woocommerce_checkout');
   }
+
+  /**
+   * Check if current page is the order received/confirmation page
+   *
+   * @return bool
+   */
+  public function is_order_received_page(): bool
+  {
+    // Check if WooCommerce function exists
+    if (function_exists('is_wc_endpoint_url')) {
+      return is_wc_endpoint_url('order-received');
+    }
+
+    // Fallback: check for order-received query parameter
+    if ($this->is_checkout() && isset($_GET['order-received'])) {
+      return !empty($_GET['order-received']);
+    }
+
+    return false;
+  }
 }

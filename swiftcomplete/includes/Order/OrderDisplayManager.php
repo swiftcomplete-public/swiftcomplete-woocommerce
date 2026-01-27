@@ -169,19 +169,18 @@ class OrderDisplayManager implements OrderDisplayInterface
         $values = $this->get_field_values($order);
         $billing_value = $values['billing'];
         $shipping_value = $values['shipping'];
-
-        // TODO: Replace this with what3words address (if enabled)
-        if ($billing_value || $shipping_value) {
+        if ($billing_value) {
             ?>
-            <section class="woocommerce-customer-details">
-                <h2 class="woocommerce-order-details__title"><?php esc_html_e('Custom Fields', 'swiftcomplete'); ?></h2>
-                <?php if ($billing_value): ?>
-                    <p><strong><?php esc_html_e('Billing:', 'swiftcomplete'); ?></strong> <?php echo esc_html($billing_value); ?></p>
-                <?php endif; ?>
-                <?php if ($shipping_value): ?>
-                    <p><strong><?php esc_html_e('Shipping:', 'swiftcomplete'); ?></strong> <?php echo esc_html($shipping_value); ?></p>
-                <?php endif; ?>
-            </section>
+            <p id="what3words-billing">
+                <b>what3words:</b>&nbsp;<?php echo esc_html($billing_value); ?>
+            </p>
+            <?php
+        }
+        if ($shipping_value) {
+            ?>
+            <p id="what3words-shipping">
+                <b>what3words:</b>&nbsp;<?php echo esc_html($shipping_value); ?>
+            </p>
             <?php
         }
     }

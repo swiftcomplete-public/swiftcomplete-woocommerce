@@ -73,16 +73,29 @@ class BlocksCheckout implements CheckoutInterface
         }
         $swiftcomplete_data = $data['swiftcomplete'];
 
+        $field_ids = $this->get_field_ids();
+
         $billing_value = $this->extract_sanitized_value($swiftcomplete_data, 'billing_what3words');
         $shipping_value = $this->extract_sanitized_value($swiftcomplete_data, 'shipping_what3words');
         if ($billing_value) {
-            $this->meta_repository->save($order->get_id(), '_billing_' . $this->get_field_id(), $billing_value);
+            $this->meta_repository->save($order->get_id(), '_billing_' . $field_ids['what3words'], $billing_value);
             $this->meta_repository->save($order->get_id(), FieldConstants::get_blocks_billing_what3words_meta_key(), $billing_value);
         }
 
         if ($shipping_value) {
-            $this->meta_repository->save($order->get_id(), '_shipping_' . $this->get_field_id(), $shipping_value);
+            $this->meta_repository->save($order->get_id(), '_shipping_' . $field_ids['what3words'], $shipping_value);
             $this->meta_repository->save($order->get_id(), FieldConstants::get_blocks_shipping_what3words_meta_key(), $shipping_value);
+        }
+
+        // Save to customer meta if user is logged in
+        $customer_id = $order->get_customer_id();
+        if ($customer_id > 0) {
+            if ($billing_value) {
+                update_user_meta($customer_id, '_billing_' . $field_ids['what3words'], $billing_value);
+            }
+            if ($shipping_value) {
+                update_user_meta($customer_id, '_shipping_' . $field_ids['what3words'], $shipping_value);
+            }
         }
     }
 
@@ -125,9 +138,12 @@ class BlocksCheckout implements CheckoutInterface
      *
      * @return string
      */
-    public function get_field_id(): string
+    public function get_field_ids(): array
     {
-        return str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID);
+        return array(
+            'what3words' => str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID),
+            'search_field' => str_replace('-', '_', FieldConstants::ADDRESS_SEARCH_FIELD_ID),
+        );
     }
 
     /**

@@ -78,20 +78,23 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     private function process_address_type_fields(array $address_fields, string $type): array
     {
+
+        $field_ids = $this->get_field_ids();
         $field_suffixes = array(
             'first_name',
             'last_name',
             'country',
-            $this->get_field_id(),
+            $field_ids['search_field'],
             'company',
             'address_2',
             'address_1',
             'city',
             'postcode',
             'state',
+            $field_ids['what3words'],
         );
         $optional_suffixes = array('company', 'address_2');
-        $additional_checkout_field = array(
+        $address_search_field = array(
             'label' => __('Address Finder', 'woocommerce'),
             'required' => false,
             'class' => array('form-row-wide'),
@@ -108,11 +111,24 @@ class ShortcodeCheckout implements CheckoutInterface
             $fields[] = $field_name;
         }
 
-        $field_id = "{$type}_" . $this->get_field_id();
+        $field_id = "{$type}_" . $field_ids['search_field'];
         $address_fields[$type][$field_id] = array_merge(
-            $additional_checkout_field,
+            $address_search_field,
             array('id' => $field_id)
         );
+
+        $field_id = "{$type}_" . $field_ids['what3words'];
+        if (!isset($address_fields[$type][$field_id])) {
+            $address_fields[$type][$field_id] = array_merge(
+                array(
+                    'label' => __('what3words address', 'woocommerce'),
+                    'required' => false,
+                    'class' => array('form-row-wide'),
+                    'type' => 'text',
+                ),
+                array('id' => $field_id)
+            );
+        }
 
         $priority = 0;
         foreach ($fields as $field_name) {
@@ -134,8 +150,9 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function save_extension_data_to_order(\WC_Order $order, array $data): void
     {
-        $billing_key = 'billing_' . $this->get_field_id();
-        $shipping_key = 'shipping_' . $this->get_field_id();
+        $field_ids = $this->get_field_ids();
+        $billing_key = 'billing_' . $field_ids['what3words'];
+        $shipping_key = 'shipping_' . $field_ids['what3words'];
 
         // Get values from POST
         $billing_value = isset($_POST[$billing_key])
@@ -160,6 +177,17 @@ class ShortcodeCheckout implements CheckoutInterface
         if ($shipping_value) {
             $this->meta_repository->save($order->get_id(), FieldConstants::get_shipping_what3words_meta_key(), $shipping_value);
         }
+
+        // Save to customer meta if user is logged in
+        $customer_id = $order->get_customer_id();
+        if ($customer_id > 0) {
+            if ($billing_value) {
+                update_user_meta($customer_id, '_billing_' . $field_ids['what3words'], $billing_value);
+            }
+            if ($shipping_value) {
+                update_user_meta($customer_id, '_shipping_' . $field_ids['what3words'], $shipping_value);
+            }
+        }
     }
 
     /**
@@ -173,11 +201,12 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function remove_optional_fields_label(string $field, string $key, array $args, string $value): string
     {
+        $field_ids = $this->get_field_ids();
         if (
             is_checkout() &&
             !is_wc_endpoint_url() &&
             (strpos($key, 'billing_') === 0 || strpos($key, 'shipping_') === 0) &&
-            strpos($key, $this->get_field_id()) !== false
+            (strpos($key, $field_ids['what3words']) !== false || strpos($key, $field_ids['search_field']) !== false)
         ) {
             $optional = '&nbsp;<span class="optional">(' . esc_html__('optional', 'woocommerce') . ')</span>';
             $field = str_replace($optional, '', $field);
@@ -186,13 +215,46 @@ class ShortcodeCheckout implements CheckoutInterface
     }
 
     /**
+     * Get customer what3words value for a field
+     * Used by woocommerce_checkout_get_value filter
+     *
+     * @param string $field_key Field key (e.g., 'billing_swiftcomplete_what3words')
+     * @return string|null Customer value or null
+     */
+    public function get_customer_field_value(string $field_key): ?string
+    {
+        if (!is_user_logged_in()) {
+            return null;
+        }
+
+        $field_ids = $this->get_field_ids();
+        $what3words_field_id = $field_ids['what3words'];
+        $billing_key = 'billing_' . $what3words_field_id;
+        $shipping_key = 'shipping_' . $what3words_field_id;
+
+        $user_id = get_current_user_id();
+        $value = null;
+
+        if ($field_key === $billing_key) {
+            $value = get_user_meta($user_id, '_billing_' . $what3words_field_id, true);
+        } elseif ($field_key === $shipping_key) {
+            $value = get_user_meta($user_id, '_shipping_' . $what3words_field_id, true);
+        }
+
+        return $value ? sanitize_text_field($value) : null;
+    }
+
+    /**
      * Get the field ID for this strategy
      *
      * @return string
      */
-    public function get_field_id(): string
+    public function get_field_ids(): array
     {
-        return str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID);
+        return array(
+            'what3words' => str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID),
+            'search_field' => str_replace('-', '_', FieldConstants::ADDRESS_SEARCH_FIELD_ID),
+        );
     }
 
     /**

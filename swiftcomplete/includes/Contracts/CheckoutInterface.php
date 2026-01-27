@@ -28,7 +28,7 @@ interface CheckoutInterface
      *
      * @return string
      */
-    public function get_field_id(): string;
+    public function get_field_ids(): array;
 
     /**
      * Check if this strategy applies to current checkout
