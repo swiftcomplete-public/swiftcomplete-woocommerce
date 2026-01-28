@@ -15,14 +15,6 @@ defined('ABSPATH') || exit;
 interface OrderDisplayInterface
 {
     /**
-     * Display field in admin order details
-     *
-     * @param \WC_Order $order Order object
-     * @return void
-     */
-    public function display_in_admin(\WC_Order $order): void;
-
-    /**
      * Display field on order page (customer view)
      *
      * @param \WC_Order $order Order object

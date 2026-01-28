@@ -25,7 +25,7 @@ const sc_address_builder = {
         const fields = [];
         let address1Format = FIELD_FORMATS.ADDRESS_1_BASE;
 
-        const address2 = wc_checkout_field.getFieldWithContainer(addressType, 'address_2');
+        const address2 = sc_fields.getFieldWithContainer(addressType, 'address_2');
         if (address2?.field) {
             fields.push({
                 container: address2.container,
@@ -37,7 +37,7 @@ const sc_address_builder = {
             this.setupAddress2Toggle(addressType, settings, autocompleteField);
         }
 
-        const company = wc_checkout_field.getFieldWithContainer(addressType, 'company');
+        const company = sc_fields.getFieldWithContainer(addressType, 'company');
         if (company?.field) {
             fields.push({
                 container: company.container,
@@ -49,7 +49,7 @@ const sc_address_builder = {
                 : FIELD_FORMATS.ADDRESS_1_WITH_COMPANY;
         }
 
-        const address1 = wc_checkout_field.getFieldWithContainer(addressType, 'address_1');
+        const address1 = sc_fields.getFieldWithContainer(addressType, 'address_1');
         if (address1?.field) {
             fields.push({
                 container: address1.container,
@@ -58,7 +58,7 @@ const sc_address_builder = {
             });
         }
 
-        const city = wc_checkout_field.getFieldWithContainer(addressType, 'city');
+        const city = sc_fields.getFieldWithContainer(addressType, 'city');
         if (city?.field) {
             fields.push({
                 container: city.container,
@@ -67,7 +67,7 @@ const sc_address_builder = {
             });
         }
 
-        const state = wc_checkout_field.getFieldWithContainer(addressType, 'state');
+        const state = sc_fields.getFieldWithContainer(addressType, 'state');
         if (state?.field) {
             const stateFormat = settings.state_counties ? 'STATEABBREVIATION' : '';
             fields.push({
@@ -77,7 +77,7 @@ const sc_address_builder = {
             });
         }
 
-        const postcode = wc_checkout_field.getFieldWithContainer(addressType, 'postcode');
+        const postcode = sc_fields.getFieldWithContainer(addressType, 'postcode');
         if (postcode?.field) {
             fields.push({
                 container: postcode.container,
@@ -87,7 +87,7 @@ const sc_address_builder = {
         }
 
         if (settings.search_for?.indexOf('what3words') !== -1) {
-            const what3words = wc_checkout_field.getFieldWithContainer(
+            const what3words = sc_fields.getFieldWithContainer(
                 addressType,
                 'swiftcomplete-what3words'
             );
@@ -124,7 +124,7 @@ const sc_address_builder = {
         toggle.addEventListener('click', () => {
             wc_fields_util.retryUntil(
                 () => {
-                    const field = wc_checkout_field.getField(addressType, 'address_2');
+                    const field = sc_fields.getField(addressType, 'address_2');
                     return !!field;
                 },
                 () => {
@@ -213,9 +213,9 @@ const sc_select_handler = {
      */
     handleSelected(event, addressType, buildAddressFields) {
         const addressFields = buildAddressFields();
-        const postcodeField = wc_checkout_field.findField(addressFields, addressType, 'postcode');
-        const stateField = wc_checkout_field.findField(addressFields, addressType, 'state');
-        const what3wordsField = wc_checkout_field.findField(
+        const postcodeField = sc_fields.findField(addressFields, addressType, 'postcode');
+        const stateField = sc_fields.findField(addressFields, addressType, 'state');
+        const what3wordsField = sc_fields.findField(
             addressFields,
             addressType,
             'swiftcomplete-what3words'
@@ -304,7 +304,7 @@ const sc_select_handler = {
      */
     handleManualEntry(addressType, buildAddressFields) {
         const addressFields = buildAddressFields();
-        const what3wordsField = wc_checkout_field.findField(
+        const what3wordsField = sc_fields.findField(
             addressFields,
             addressType,
             'swiftcomplete-what3words'
@@ -432,7 +432,7 @@ const sc_field_visibility = {
      * @param {boolean} hasCoverage - Whether country has coverage
      */
     updateWhat3wordsField(addressType, countryCode, hasCoverage) {
-        const what3words = wc_checkout_field.getFieldWithContainer(addressType, wc_checkout_field.what3wordsFieldId);
+        const what3words = sc_fields.getFieldWithContainer(addressType, sc_fields.what3wordsFieldId);
         if (!what3words) {
             return;
         }
@@ -451,14 +451,14 @@ const sc_field_visibility = {
      */
     updateAddressSearchField(addressType, countryCode, hasCoverage) {
         // Try both field ID formats (hyphen for blocks, underscore for shortcode)
-        let addressSearchField = wc_checkout_field.getField(
+        let addressSearchField = sc_fields.getField(
             addressType,
             'swiftcomplete-address-search'
         );
 
         // If not found with hyphen, try with underscore
         if (!addressSearchField) {
-            addressSearchField = wc_checkout_field.getField(
+            addressSearchField = sc_fields.getField(
                 addressType,
                 'swiftcomplete_address_search'
             );
@@ -487,7 +487,6 @@ const sc_field_visibility = {
             shouldShow = hasCoverage === true;
         }
         // If no country, show by default (shouldShow remains true)
-
         addressSearchContainer.style.display = shouldShow ? 'block' : 'none';
     },
 };
@@ -538,12 +537,12 @@ const sc_country = {
             isHandling = true;
 
             setTimeout(() => {
-                const currentCountryField = wc_checkout_field.getField(addressType, 'country');
+                const currentCountryField = sc_fields.getField(addressType, 'country');
                 const newCountry = currentCountryField
                     ? currentCountryField.value
                     : target.value || '';
                 const addressFields = buildAddressFields();
-                const what3wordsField = wc_checkout_field.findField(
+                const what3wordsField = sc_fields.findField(
                     addressFields,
                     addressType,
                     'swiftcomplete-what3words'
@@ -623,7 +622,7 @@ function initializeControl(addressType, settings, autocompleteField) {
         );
 
         const attachCountryChangeListener = () => {
-            const countryField = wc_checkout_field.getField(addressType, 'country');
+            const countryField = sc_fields.getField(addressType, 'country');
 
             if (countryField) {
                 countryField.removeEventListener('change', handleCountryChange, false);
@@ -654,7 +653,7 @@ function initializeControl(addressType, settings, autocompleteField) {
         if (!countryField) {
             wc_fields_util.retryUntil(
                 () => {
-                    const field = wc_checkout_field.getField(addressType, 'country');
+                    const field = sc_fields.getField(addressType, 'country');
                     return !!field;
                 },
                 () => {
@@ -691,7 +690,7 @@ function initializeControl(addressType, settings, autocompleteField) {
 
         if (!isBlocks && typeof jQuery !== 'undefined') {
             jQuery(document.body).on('checkout_update', function () {
-                const currentCountryField = wc_checkout_field.getField(addressType, 'country');
+                const currentCountryField = sc_fields.getField(addressType, 'country');
                 if (currentCountryField) {
                     const currentCountry = currentCountryField.value;
                     sc_field_visibility.update(
@@ -717,16 +716,16 @@ function initializeControl(addressType, settings, autocompleteField) {
 function initialiseSwiftcompleteBlocks(addressType, config) {
     return wc_fields_util.retryUntil(
         () => {
-            const field = wc_checkout_field.getField(
+            const field = sc_fields.getField(
                 addressType,
-                wc_checkout_field.addressSearchFieldId
+                sc_fields.addressSearchFieldId
             );
             return !!field;
         },
         () => {
-            const autocompleteField = wc_checkout_field.getField(
+            const autocompleteField = sc_fields.getField(
                 addressType,
-                wc_checkout_field.addressSearchFieldId
+                sc_fields.addressSearchFieldId
             );
             if (autocompleteField) {
                 initializeControl(addressType, config, autocompleteField);
@@ -776,7 +775,7 @@ const sc_blocks_component_loader = {
     },
 
     checkAndInit(config) {
-        const addressForms = wc_checkout_field.getAddressForms();
+        const addressForms = sc_fields.getAddressForms();
         if (!addressForms || addressForms.length === 0) {
             return;
         }
@@ -875,52 +874,12 @@ function loadSwiftcompleteComponent(config) {
         console.warn('Swiftcomplete: Browser not compatible. Skipping component initialization.');
         return;
     }
-    const addressForms = wc_checkout_field.getAddressForms();
+    const addressForms = sc_fields.getAddressForms();
     addressForms?.forEach((addressForm) => {
         initialiseSwiftcompleteBlocks(addressForm.id, config);
     });
 
     if (config?.isBlocks) {
         sc_blocks_component_loader.init(config);
-    }
-}
-
-const sc_what3words = {
-    getAddressField(addressType) {
-        let address = document.querySelector(
-            `.woocommerce-order .woocommerce-customer-details [class*="${addressType}-address"]`
-        )?.querySelector('address');
-        if (!address) {
-            address = document.querySelector(
-                `.wp-block-woocommerce-order-confirmation-${addressType}-address`
-            )?.querySelector('address');
-        }
-        if (!address) {
-            return;
-        }
-        return address;
-    },
-    getWhat3wordsField(addressType) {
-        const field = document.querySelector(`#what3words-${addressType}`);
-        if (!field) {
-            return;
-        }
-        return field;
-    }
-}
-
-function repositionConfirmationFields() {
-    const billingAddress = sc_what3words.getAddressField('billing');
-    const shippingAddress = sc_what3words.getAddressField('shipping');
-    if (!billingAddress || !shippingAddress) {
-        return;
-    }
-    const billingWhat3words = sc_what3words.getWhat3wordsField('billing');
-    const shippingWhat3words = sc_what3words.getWhat3wordsField('shipping');
-    if (billingWhat3words) {
-        billingAddress.appendChild(billingWhat3words);
-    }
-    if (shippingWhat3words) {
-        shippingAddress.appendChild(shippingWhat3words);
     }
 }

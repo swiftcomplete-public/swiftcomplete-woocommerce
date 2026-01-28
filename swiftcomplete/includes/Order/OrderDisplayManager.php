@@ -12,6 +12,7 @@ use Swiftcomplete\Contracts\OrderMetaRepositoryInterface;
 use Swiftcomplete\Core\HookManager;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
 use Swiftcomplete\Utilities\FieldConstants;
+use Swiftcomplete\Settings\SettingsManager;
 
 defined('ABSPATH') || exit;
 
@@ -42,6 +43,13 @@ class OrderDisplayManager implements OrderDisplayInterface
     private $hook_manager;
 
     /**
+     * Settings manager
+     *
+     * @var SettingsManager
+     */
+    private $settings_manager;
+
+    /**
      * Constructor
      *
      * @param OrderMetaRepositoryInterface $meta_repository         Order meta repository
@@ -51,11 +59,13 @@ class OrderDisplayManager implements OrderDisplayInterface
     public function __construct(
         OrderMetaRepositoryInterface $meta_repository,
         CheckoutTypeIdentifier $checkout_type_identifier,
-        HookManager $hook_manager
+        HookManager $hook_manager,
+        SettingsManager $settings_manager
     ) {
         $this->meta_repository = $meta_repository;
         $this->checkout_type_identifier = $checkout_type_identifier;
         $this->hook_manager = $hook_manager;
+        $this->settings_manager = $settings_manager;
         $this->register_hooks();
     }
 
@@ -72,12 +82,16 @@ class OrderDisplayManager implements OrderDisplayInterface
         }
 
         // Display in admin order details
-        $this->hook_manager->register_action('woocommerce_admin_order_data_after_billing_address', array($this, 'display_in_admin'), 10, 1);
-        $this->hook_manager->register_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'display_in_admin'), 10, 1);
+        // $this->hook_manager->register_action('woocommerce_admin_order_data_after_billing_address', array($this, 'display_what3words_after_billing_address'), 10, 1);
+        $this->hook_manager->register_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'display_what3words_after_shipping_address'), 10, 1);
 
         // Display on order confirmation page
         $this->hook_manager->register_action('woocommerce_order_details_after_customer_details', array($this, 'display_on_order'), 10, 1);
         $this->hook_manager->register_action('woocommerce_thankyou', array($this, 'display_on_confirmation'), 10, 1);
+
+        // Add fields to order in admin
+        $this->hook_manager->register_action('woocommerce_admin_shipping_fields', array($this, 'add_swiftcomplete_order_shipping'), 10, 2);
+        $this->hook_manager->register_action('woocommerce_admin_billing_fields', array($this, 'add_swiftcomplete_order_billing'), 10, 2);
     }
 
     /**
@@ -86,32 +100,30 @@ class OrderDisplayManager implements OrderDisplayInterface
      * @param \WC_Order $order Order object
      * @return void
      */
-    public function display_in_admin(\WC_Order $order): void
+    public function display_what3words_after_billing_address(\WC_Order $order): void
+    {
+        $this->display_in_admin($order, 'billing');
+    }
+
+    public function display_what3words_after_shipping_address(\WC_Order $order): void
+    {
+        $this->display_in_admin($order, 'shipping');
+    }
+
+    private function display_in_admin(\WC_Order $order, string $address_type): void
     {
         if (!$order instanceof \WC_Order) {
             return;
         }
 
         $values = $this->get_field_values($order);
-        $billing_value = $values['billing'];
-        $shipping_value = $values['shipping'];
+        $what3words = $values[$address_type];
 
-        // TODO: Replace this with what3words address (if enabled)
-        if ($billing_value) {
+        if (!empty($what3words)) {
             ?>
-            <p class="form-field form-field-wide">
-                <strong><?php esc_html_e('Billing Custom Field:', 'swiftcomplete'); ?></strong>
-                <?php echo esc_html($billing_value); ?>
-            </p>
-            <?php
-        }
-
-        // TODO: Replace this with what3words address (if enabled)
-        if ($shipping_value) {
-            ?>
-            <p class="form-field form-field-wide">
-                <strong><?php esc_html_e('Shipping Custom Field:', 'swiftcomplete'); ?></strong>
-                <?php echo esc_html($shipping_value); ?>
+            <p id="shipping_what3words_fallback">
+                <strong><?php esc_html_e('what3words:', 'swiftcomplete'); ?></strong>
+                <?php echo esc_html($what3words); ?>
             </p>
             <?php
         }
@@ -136,6 +148,12 @@ class OrderDisplayManager implements OrderDisplayInterface
         $values = $this->get_field_values($order);
         $billing_value = $values['billing'];
         $shipping_value = $values['shipping'];
+
+        ?>
+        <div class="order-what3words-container">
+            This is on order page
+        </div>
+        <?php
 
         // TODO: Replace this with what3words address (if enabled)
         if ($billing_value || $shipping_value) {
@@ -215,4 +233,92 @@ class OrderDisplayManager implements OrderDisplayInterface
             'shipping' => $shipping_value ?: '',
         );
     }
+
+    public function add_swiftcomplete_order_billing(array $fields, $order = null): array
+    {
+        $order_id = $this->resolve_order_id($order);
+        return $this->add_field_to_address('billing', $fields, $order_id);
+    }
+
+    public function add_swiftcomplete_order_shipping(array $fields, $order = null): array
+    {
+        $order_id = $this->resolve_order_id($order);
+        return $this->add_field_to_address('shipping', $fields, $order_id, false);
+    }
+
+    /**
+     * Resolve an order ID from WooCommerce admin field filters.
+     *
+     * WooCommerce versions differ here: some pass only $fields, others also pass
+     * an order object (or order ID). This method supports all cases.
+     *
+     * @param mixed $order
+     * @return int
+     */
+    private function resolve_order_id($order): int
+    {
+        $order_id = 0;
+
+        if ($order instanceof \WC_Order) {
+            $order_id = (int) $order->get_id();
+        } elseif (is_numeric($order)) {
+            $order_id = absint($order);
+        } elseif (isset($_GET['post'])) {
+            // Classic order edit screen: /wp-admin/post.php?post=XX&action=edit
+            $order_id = absint($_GET['post']);
+        } elseif (isset($_GET['id'])) {
+            // HPOS order edit screen: /wp-admin/admin.php?page=wc-orders&action=edit&id=XX
+            $order_id = absint($_GET['id']);
+        } elseif (isset($GLOBALS['post']) && $GLOBALS['post'] instanceof \WP_Post) {
+            $order_id = (int) $GLOBALS['post']->ID;
+        }
+
+        return $order_id;
+    }
+
+    private function add_field_to_address(string $field_id, array $fields, int $order_id, bool $show_w3w = true): array
+    {
+        $api_key = $this->settings_manager->get_setting('api_key', '');
+
+        if (empty($api_key)) {
+            return $fields;
+        }
+
+        $position = array_search('company', array_keys($fields));
+        if ($position === false) {
+            $position = array_search('address_1', array_keys($fields));
+        }
+
+        $search_field = array(
+            'label' => __('Address Finder', 'swiftcomplete'),
+            'class' => 'short',
+            'show' => false,
+            'type' => 'text',
+            'wrapper_class' => 'form-field-wide',
+        );
+        if ($position === false) {
+            $fields['swiftcomplete_address_search'] = $search_field;
+        } else {
+            $array = array_slice($fields, 0, $position, true);
+            $array['swiftcomplete_address_search'] = $search_field;
+            $fields = $array + array_slice($fields, $position, null, true);
+        }
+
+        $order = wc_get_order($order_id);
+        $order_values = $this->get_field_values($order);
+        $what3words = $order_values[$field_id];
+        if (!empty($what3words)) {
+            $fields[FieldConstants::WHAT3WORDS_FIELD_ID] = array(
+                'label' => __('what3words', 'swiftcomplete'),
+                'value' => $what3words,
+                'class' => 'short',
+                'show' => $show_w3w,
+                'type' => 'text',
+                'wrapper_class' => 'form-field-wide',
+            );
+        }
+
+        return $fields;
+    }
+
 }

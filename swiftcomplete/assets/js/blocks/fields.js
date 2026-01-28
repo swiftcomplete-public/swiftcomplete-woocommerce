@@ -68,7 +68,7 @@ const wc_checkout = {
   },
 };
 
-const wc_checkout_field = {
+const sc_fields = {
   what3wordsFieldId: null,
   addressSearchFieldId: null,
   createLabel(fieldId, fieldLabel) {
@@ -328,7 +328,7 @@ const wc_checkout_field = {
 
 const w3w_field = {
   getValue(addressType) {
-    const field = wc_checkout_field.getWhat3wordsField(addressType);
+    const field = sc_fields.getWhat3wordsField(addressType);
     return field?.value?.trim() || null;
   },
 
@@ -344,21 +344,21 @@ const w3w_field = {
     };
   },
   setValue(addressType, value) {
-    const success = wc_checkout_field.setWhat3wordsValue(addressType, value, true);
+    const success = sc_fields.setWhat3wordsValue(addressType, value, true);
     if (success) {
       this.saveFieldExtensionData();
     }
     return success;
   },
   removeValue(addressType) {
-    const success = wc_checkout_field.setWhat3wordsValue(addressType, null, true);
+    const success = sc_fields.setWhat3wordsValue(addressType, null, true);
     if (success) {
       this.saveFieldExtensionData();
     }
     return success;
   },
   syncBillingFromShipping() {
-    const synced = wc_checkout_field.syncWhat3wordsBillingFromShipping();
+    const synced = sc_fields.syncWhat3wordsBillingFromShipping();
     if (synced) {
       this.saveFieldExtensionData();
     }
@@ -384,7 +384,7 @@ const w3w_field = {
 const sc_init = {
   config: null,
   setupCheckoutSubmission(setupState) {
-    const unsubscribeForm = wc_checkout_field.onCheckoutFormSubmit(w3w_field.saveFieldExtensionData, setupState);
+    const unsubscribeForm = sc_fields.onCheckoutFormSubmit(w3w_field.saveFieldExtensionData, setupState);
     if (unsubscribeForm) {
       setupState.unsubscribeFormSubmit = unsubscribeForm;
     }
@@ -412,23 +412,23 @@ const sc_init = {
   injectedFields() {
     const injections = [];
 
-    const addressForms = wc_checkout_field.getAddressForms();
+    const addressForms = sc_fields.getAddressForms();
 
-    if (wc_checkout_field.addressSearchFieldId) {
+    if (sc_fields.addressSearchFieldId) {
       injections.push(
-        wc_checkout_field.injectFields(
-          wc_checkout_field.injectAddressSearchField,
-          wc_checkout_field.addressSearchFieldId,
+        sc_fields.injectFields(
+          sc_fields.injectAddressSearchField,
+          sc_fields.addressSearchFieldId,
           addressForms
         )
       );
     }
 
-    if (this.config?.w3wEnabled === true && wc_checkout_field.what3wordsFieldId) {
+    if (this.config?.w3wEnabled === true && sc_fields.what3wordsFieldId) {
       injections.push(
-        wc_checkout_field.injectFields(
-          wc_checkout_field.injectWhat3wordsField,
-          wc_checkout_field.what3wordsFieldId,
+        sc_fields.injectFields(
+          sc_fields.injectWhat3wordsField,
+          sc_fields.what3wordsFieldId,
           addressForms
         )
       );
@@ -528,8 +528,8 @@ function initialiseSwiftcompleteFields(config) {
   }
   sc_init.config = config;
   if (typeof COMPONENT_DEFAULTS !== 'undefined') {
-    wc_checkout_field.what3wordsFieldId = COMPONENT_DEFAULTS.WHAT3WORDS_FIELD_ID || null;
-    wc_checkout_field.addressSearchFieldId = COMPONENT_DEFAULTS.ADDRESS_SEARCH_FIELD_ID || null;
+    sc_fields.what3wordsFieldId = COMPONENT_DEFAULTS.WHAT3WORDS_FIELD_ID || null;
+    sc_fields.addressSearchFieldId = COMPONENT_DEFAULTS.ADDRESS_SEARCH_FIELD_ID || null;
   }
 
   if (document.readyState === 'loading') {

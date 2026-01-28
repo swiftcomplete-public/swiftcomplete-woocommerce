@@ -15,6 +15,7 @@ use Swiftcomplete\Order\OrderDisplayManager;
 use Swiftcomplete\Order\OrderMetaRepository;
 use Swiftcomplete\Settings\SettingsManager;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
+use Swiftcomplete\Utilities\WooCommercePageContext;
 use Swiftcomplete\Core\ServiceContainer;
 use Swiftcomplete\Core\HookManager;
 use Swiftcomplete\Core\ErrorHandler;
@@ -94,6 +95,10 @@ class Plugin
             return new CheckoutTypeIdentifier();
         });
 
+        $this->container->register_singleton('wc_page_context', function () {
+            return new WooCommercePageContext();
+        });
+
         $this->container->register_singleton('meta_repository', function () {
             return new OrderMetaRepository();
         });
@@ -130,7 +135,8 @@ class Plugin
             return new OrderDisplayManager(
                 $container->get('meta_repository'),
                 $container->get('checkout_type_identifier'),
-                $container->get('hook_manager')
+                $container->get('hook_manager'),
+                $container->get('settings_manager')
             );
         });
 
@@ -138,6 +144,7 @@ class Plugin
         $this->container->register_singleton('asset_enqueuer', function ($container) {
             return new AssetEnqueuer(
                 $container->get('checkout_type_identifier'),
+                $container->get('wc_page_context'),
                 $container->get('hook_manager'),
                 $container->get('settings_manager'),
                 self::VERSION,

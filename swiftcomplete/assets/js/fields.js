@@ -5,7 +5,7 @@ const FIELD_SELECTORS = {
   ADDRESS_FORM_SELECTOR: '.woocommerce-billing-fields, .woocommerce-shipping-fields',
 };
 
-const wc_checkout_field = {
+const sc_fields = {
   what3wordsFieldId: null,
   addressSearchFieldId: null,
   getField(addressType, fieldId) {

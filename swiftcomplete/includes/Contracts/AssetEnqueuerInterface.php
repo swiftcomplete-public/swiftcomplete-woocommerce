@@ -19,5 +19,5 @@ interface AssetEnqueuerInterface
      *
      * @return void
      */
-    public function enqueue_for_checkout(): void;
+    public function enqueue_scripts(): void;
 }
