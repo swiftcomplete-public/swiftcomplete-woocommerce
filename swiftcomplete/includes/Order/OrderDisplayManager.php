@@ -285,10 +285,11 @@ class OrderDisplayManager implements OrderDisplayInterface
             $fields = $array + array_slice($fields, $position, null, true);
         }
 
-        $order = wc_get_order($order_id);
-        $order_values = $this->get_field_values($order);
-        $what3words = isset($order_values[$field_id]) ? $order_values[$field_id] : '';
-        if (!empty($what3words)) {
+        $w3w_enabled = $this->settings_manager->get_setting('w3w_enabled');
+        if ($w3w_enabled) {
+            $order = wc_get_order($order_id);
+            $order_values = $this->get_field_values($order);
+            $what3words = isset($order_values[$field_id]) ? $order_values[$field_id] : '';
             $fields[FieldConstants::WHAT3WORDS_FIELD_ID] = array(
                 'label' => __('what3words', 'swiftcomplete'),
                 'value' => $what3words,

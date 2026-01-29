@@ -415,7 +415,7 @@ const sc_field_visibility = {
                 return;
             }
 
-            if ([`${addressType}-swiftcomplete-what3words`, `${addressType}_swiftcomplete_what3words`].includes(fieldItem.field.id)) {
+            if ([`${addressType}-swiftcomplete-what3words`, `_${addressType}_swiftcomplete-what3words`, `${addressType}_swiftcomplete_what3words`].includes(fieldItem.field.id)) {
                 const hasValue = fieldItem.field.value?.trim().length > 0;
                 const shouldShow = hasValue && (!countryCode || hasCoverage);
                 fieldItem.container.style.display = shouldShow ? 'block' : 'none';
