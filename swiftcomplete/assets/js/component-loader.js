@@ -177,8 +177,8 @@ const sc_control = {
             populateLineFormat: populateLineFormatConfig,
         });
 
-        if (settings.bias_lat_lon) {
-            swiftcomplete.controls[addressType].biasTowards(settings.bias_lat_lon);
+        if (settings.bias_towards) {
+            swiftcomplete.controls[addressType].biasTowards(settings.bias_towards);
         }
     },
 
@@ -268,7 +268,7 @@ const sc_select_handler = {
                 return;
             }
 
-            if ([`${addressType}-swiftcomplete-what3words`, `${addressType}_swiftcomplete_what3words`].includes(fieldItem.field?.id)) {
+            if ([`${addressType}-swiftcomplete-what3words`, `_${addressType}-swiftcomplete-what3words`, `${addressType}_swiftcomplete_what3words`].includes(fieldItem.field?.id)) {
                 setTimeout(() => {
                     const hasValue = fieldItem.field?.value?.trim().length > 0;
                     fieldItem.container.style.display = hasValue ? 'block' : 'none';
@@ -435,6 +435,10 @@ const sc_field_visibility = {
         const what3words = sc_fields.getFieldWithContainer(addressType, sc_fields.what3wordsFieldId);
         if (!what3words) {
             return;
+        }
+
+        if (what3words.field?.defaultValue?.trim().length > 0) {
+            what3words.field.value = what3words.field.defaultValue;
         }
 
         const hasValue = what3words.field?.value?.trim().length > 0;
@@ -854,6 +858,13 @@ const sc_blocks_component_loader = {
                             );
                             if (!billingForm && swiftcomplete.controls?.billing) {
                                 sc_control.destroy('billing');
+                            }
+                            try {
+                                if (typeof w3w_field !== 'undefined' && w3w_field.saveFieldExtensionData) {
+                                    w3w_field.saveFieldExtensionData();
+                                }
+                            } catch (err) {
+                                console.warn('Swiftcomplete: Failed to save field extension data after billing unmount', err);
                             }
                         }, this.getRecheckDelayMs());
                     }

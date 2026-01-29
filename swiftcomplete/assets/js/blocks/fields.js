@@ -112,23 +112,19 @@ const sc_fields = {
   createCheckoutField(
     addressType,
     fieldId,
-    dataFieldName = null,
     options = {}
   ) {
     const fullFieldId = `${addressType}-${fieldId}`;
-    const fieldLabel = options.label || FIELD_DEFAULTS.DEFAULT_SEARCH_FIELD_LABEL;
 
     const container = document.createElement('div');
     container.className = `wc-block-components-text-input wc-block-components-address-form__${fieldId}`;
-
-    const label = this.createLabel(fullFieldId, fieldLabel);
 
     const inputOptions = {
       readonly: options.readonly === true,
     };
 
-    if (dataFieldName) {
-      inputOptions.dataName = `${addressType}/${dataFieldName}`;
+    if (options.dataFieldName) {
+      inputOptions.dataName = `${addressType}/${options.dataFieldName}`;
     }
 
     const input = this.createInput(fullFieldId, inputOptions);
@@ -140,7 +136,11 @@ const sc_fields = {
     this.setupInputEventListeners(container, input);
 
     container.appendChild(input);
-    container.appendChild(label);
+
+    if (options.label) {
+      const label = this.createLabel(fullFieldId, options.label);
+      container.appendChild(label);
+    }
 
     return container;
   },
@@ -251,7 +251,8 @@ const sc_fields = {
       return false;
     }
 
-    const searchField = this.createCheckoutField(addressForm.id, fieldId);
+    const label = sc_init.config?.[`${addressForm.id}Label`];
+    const searchField = this.createCheckoutField(addressForm.id, fieldId, { label });
     address1.container.parentNode.insertBefore(searchField, address1.container);
     return true;
   },
@@ -262,10 +263,11 @@ const sc_fields = {
     }
 
     const dataFieldName = fieldId.replace(/-/g, '/');
-    const what3wordsField = this.createCheckoutField(addressForm.id, fieldId, dataFieldName, {
+    const what3wordsField = this.createCheckoutField(addressForm.id, fieldId, {
       label: 'what3words address',
       readonly: true,
       value: '',
+      dataFieldName,
     });
 
     what3wordsField.style.display = 'block';
@@ -335,7 +337,7 @@ const w3w_field = {
   getValues() {
     const shippingValue = this.getValue('shipping');
     let billingValue = this.getValue('billing');
-    if (wc_checkout.isBillingSameAsShipping() && shippingValue) {
+    if (wc_checkout.isBillingSameAsShipping()) {
       billingValue = shippingValue;
     }
     return {

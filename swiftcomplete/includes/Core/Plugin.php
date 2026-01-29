@@ -107,7 +107,8 @@ class Plugin
         $this->container->register('shortcode_strategy', function ($container) {
             return new ShortcodeCheckout(
                 $container->get('meta_repository'),
-                $container->get('checkout_type_identifier')
+                $container->get('checkout_type_identifier'),
+                $container->get('settings_manager')
             );
         });
 

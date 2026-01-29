@@ -38,7 +38,6 @@ const FIELD_DEFAULTS = {
   REINJECTION_DELAY: 100,
   SYNC_DELAY: 100,
   ADDRESS_TYPES: ['billing', 'shipping'],
-  DEFAULT_SEARCH_FIELD_LABEL: 'Type your address or postcode...',
 };
 
 const wc_fields_util = {

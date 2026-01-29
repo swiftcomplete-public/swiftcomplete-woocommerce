@@ -382,8 +382,17 @@ class SettingsManager
     // Get hide fields setting
     $hide_fields = isset($settings['hide_fields']) && $settings['hide_fields'] === true;
 
-    // Get bias towards lat/lon
-    $bias_lat_lon = isset($settings['bias_towards_lat_lon']) ? $settings['bias_towards_lat_lon'] : '';
+    // Get bias towards lat/lon (prefer explicit lat/lon value if present)
+    $bias_towards = '';
+    if (isset($settings['bias_towards_lat_lon'])) {
+      $bias_towards = $settings['bias_towards_lat_lon'];
+    } elseif (isset($settings['bias_towards'])) {
+      $bias_towards = $settings['bias_towards'];
+    }
+
+    // Get labels
+    $billing_label = isset($settings['billing_label']) ? $settings['billing_label'] : '';
+    $shipping_label = isset($settings['shipping_label']) ? $settings['shipping_label'] : '';
 
     // Get placeholders
     $billing_placeholder = isset($settings['billing_placeholder']) ? $settings['billing_placeholder'] : '';
@@ -395,12 +404,14 @@ class SettingsManager
     return array(
       'api_key' => $api_key,
       'w3w_enabled' => $w3w_enabled,
-      'search_for' => $search_for,
       'hide_fields' => $hide_fields,
-      'bias_lat_lon' => $bias_lat_lon,
+      'state_counties' => $state_counties,
+      'bias_towards' => $bias_towards,
+      'billing_label' => $billing_label,
+      'shipping_label' => $shipping_label,
       'billing_placeholder' => $billing_placeholder,
       'shipping_placeholder' => $shipping_placeholder,
-      'state_counties' => $state_counties,
+      'search_for' => $search_for,
     );
   }
 }

@@ -169,7 +169,6 @@ class AssetEnqueuer implements AssetEnqueuerInterface
      */
     public function enqueue_admin_scripts(): void
     {
-        // Enqueue browser compatibility check first (no dependencies)
         $deps = $this->enqueue_default_scripts();
         $handle = 'swiftcomplete-edit-address';
         wp_enqueue_script(
@@ -195,7 +194,7 @@ class AssetEnqueuer implements AssetEnqueuerInterface
         );
         self::invoke_function_inline_script(
             $handle,
-            'if (typeof COMPONENT_DEFAULTS !== "undefined") { sc_fields.what3wordsFieldId = COMPONENT_DEFAULTS.WHAT3WORDS_FIELD_ID || null; sc_fields.addressSearchFieldId = COMPONENT_DEFAULTS.ADDRESS_SEARCH_FIELD_ID || null; } setupWhat3wordsFallback();',
+            'if (typeof COMPONENT_DEFAULTS !== "undefined") { sc_fields.what3wordsFieldId = COMPONENT_DEFAULTS.WHAT3WORDS_FIELD_ID || null; sc_fields.addressSearchFieldId = COMPONENT_DEFAULTS.ADDRESS_SEARCH_FIELD_ID || null; }',
             array(),
             'after'
         );
@@ -339,6 +338,8 @@ class AssetEnqueuer implements AssetEnqueuerInterface
     {
         $config = array(
             'w3wEnabled' => ($this->settings_manager->get_setting('w3w_enabled', false) === true),
+            'billingLabel' => $this->settings_manager->get_setting('billing_label', 'Address Finder'),
+            'shippingLabel' => $this->settings_manager->get_setting('shipping_label', 'Address Finder'),
         );
 
         // Add customer values if user is logged in

@@ -15,7 +15,7 @@ Swiftcomplete is designed to be integrated into your address capture flow, for e
 * Fast: Operates with low latency
 * Comprehensive: Combines high quality geospatial databases and multi*residence addresses for best possible address matching.
 * Easy to use: Simple, effective user interface
-* Cost-effective: Credit packs from £10 (3p per address) (Bespoke enterprise solutions available)  
+* Cost-effective: Credit packs from £10 (3p per address) (Bespoke enterprise solutions available)
 * what3words entry: included as standard
 
 == Installation ==
@@ -62,11 +62,12 @@ Have any questions? Want to learn more about how the SwiftLookup plugin works? G
 
 = 1.1.0 =
 * Added activation/deactivation hooks with comprehensive error handling
-* Enhanced error logging and debugging capabilities
+* Automatically deactivate when fatal error occurs
 * Improved WooCommerce dependency checks with multiple safety layers
 * Improved source code organization
 * Enhanced safety checks throughout the plugin to prevent WordPress crashes
 * Implemented template system for better HTML separation
+* Blocks checkout fields
 
 = 1.0.10 =
 * Fixed issue where an address couldn't be selected if certain fields did not exist

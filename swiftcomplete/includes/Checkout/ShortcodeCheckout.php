@@ -11,6 +11,7 @@ use Swiftcomplete\Contracts\CheckoutInterface;
 use Swiftcomplete\Contracts\OrderMetaRepositoryInterface;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
 use Swiftcomplete\Utilities\FieldConstants;
+use Swiftcomplete\Settings\SettingsManager;
 
 defined('ABSPATH') || exit;
 
@@ -33,6 +34,14 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     private $checkout_type_identifier;
 
+
+    /**
+     * Settings manager
+     *
+     * @var SettingsManager
+     */
+    private $settings_manager;
+
     /**
      * Constructor
      *
@@ -41,10 +50,12 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function __construct(
         OrderMetaRepositoryInterface $meta_repository,
-        CheckoutTypeIdentifier $checkout_type_identifier
+        CheckoutTypeIdentifier $checkout_type_identifier,
+        SettingsManager $settings_manager
     ) {
         $this->meta_repository = $meta_repository;
         $this->checkout_type_identifier = $checkout_type_identifier;
+        $this->settings_manager = $settings_manager;
     }
 
     /**
@@ -78,7 +89,6 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     private function process_address_type_fields(array $address_fields, string $type): array
     {
-
         $field_ids = $this->get_field_ids();
         $field_suffixes = array(
             'first_name',
@@ -94,12 +104,14 @@ class ShortcodeCheckout implements CheckoutInterface
             $field_ids['what3words'],
         );
         $optional_suffixes = array('company', 'address_2');
+        $label = $this->settings_manager->get_setting("{$type}_label", 'Address Finder');
+        $placeholder = $this->settings_manager->get_setting("{$type}_placeholder", 'Type your address or postcode...');
         $address_search_field = array(
-            'label' => __('Address Finder', 'woocommerce'),
+            'label' => __($label, 'woocommerce'),
             'required' => false,
             'class' => array('form-row-wide'),
             'type' => 'text',
-            'placeholder' => 'Type your address or postcode...',
+            'placeholder' => $placeholder,
         );
 
         $fields = array();
@@ -117,17 +129,20 @@ class ShortcodeCheckout implements CheckoutInterface
             array('id' => $field_id)
         );
 
-        $field_id = "{$type}_" . $field_ids['what3words'];
-        if (!isset($address_fields[$type][$field_id])) {
-            $address_fields[$type][$field_id] = array_merge(
-                array(
-                    'label' => __('what3words address', 'woocommerce'),
-                    'required' => false,
-                    'class' => array('form-row-wide'),
-                    'type' => 'text',
-                ),
-                array('id' => $field_id)
-            );
+        $w3w_enabled = $this->settings_manager->get_setting('w3w_enabled');
+        if ($w3w_enabled) {
+            $field_id = "{$type}_" . $field_ids['what3words'];
+            if (!isset($address_fields[$type][$field_id])) {
+                $address_fields[$type][$field_id] = array_merge(
+                    array(
+                        'label' => __('what3words address', 'woocommerce'),
+                        'required' => false,
+                        'class' => array('form-row-wide'),
+                        'type' => 'text',
+                    ),
+                    array('id' => $field_id)
+                );
+            }
         }
 
         $priority = 0;

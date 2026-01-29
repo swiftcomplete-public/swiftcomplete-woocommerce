@@ -17,7 +17,7 @@ const sc_fields = {
     return forms.filter(Boolean);
   },
   getField(addressType, fieldId) {
-    return document.querySelector(`#${addressType} #_${addressType}_${fieldId}_field`);
+    return document.querySelector(`#${addressType} #_${addressType}_${fieldId}`);
   },
   getFieldWithContainer(addressType, fieldId) {
     const address = document.querySelector(`#${addressType}`);
@@ -33,21 +33,7 @@ const sc_fields = {
   findField(addressFields, addressType, fieldId) {
     return addressFields.find((f) => {
       const fieldIdToMatch = f.field.id;
-      return fieldIdToMatch === `${addressType}_${fieldId}`;
+      return fieldIdToMatch === `_${addressType}_${fieldId}`;
     });
   }
-}
-
-function setupWhat3wordsFallback() {
-  wc_fields_util.retryUntil(() => {
-    const field = document.querySelector('#shipping');
-    return !!field;
-  }, () => {
-    const field = document.querySelector('#shipping_what3words_fallback');
-    if (field) {
-      const shipping = document.querySelector('#shipping .address');
-      shipping.appendChild(field);
-      field.removeAttribute('id');
-    }
-  });
 }

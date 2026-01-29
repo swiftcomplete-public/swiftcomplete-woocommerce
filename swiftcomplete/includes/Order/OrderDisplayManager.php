@@ -83,7 +83,7 @@ class OrderDisplayManager implements OrderDisplayInterface
 
         // Display in admin order details
         // $this->hook_manager->register_action('woocommerce_admin_order_data_after_billing_address', array($this, 'display_what3words_after_billing_address'), 10, 1);
-        $this->hook_manager->register_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'display_what3words_after_shipping_address'), 10, 1);
+        // $this->hook_manager->register_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'display_what3words_after_shipping_address'), 10, 1);
 
         // Display on order confirmation page
         $this->hook_manager->register_action('woocommerce_order_details_after_customer_details', array($this, 'display_on_order'), 10, 1);
@@ -223,7 +223,7 @@ class OrderDisplayManager implements OrderDisplayInterface
     public function add_swiftcomplete_order_shipping(array $fields, $order = null): array
     {
         $order_id = $this->resolve_order_id($order);
-        return $this->add_field_to_address('shipping', $fields, $order_id, false);
+        return $this->add_field_to_address('shipping', $fields, $order_id);
     }
 
     /**
@@ -269,8 +269,9 @@ class OrderDisplayManager implements OrderDisplayInterface
             $position = array_search('address_1', array_keys($fields));
         }
 
+        $label = $this->settings_manager->get_setting("{$field_id}_label", 'Address Finder');
         $search_field = array(
-            'label' => __('Address Finder', 'swiftcomplete'),
+            'label' => __($label, 'swiftcomplete'),
             'class' => 'short',
             'show' => false,
             'type' => 'text',
@@ -286,7 +287,7 @@ class OrderDisplayManager implements OrderDisplayInterface
 
         $order = wc_get_order($order_id);
         $order_values = $this->get_field_values($order);
-        $what3words = $order_values[$field_id];
+        $what3words = isset($order_values[$field_id]) ? $order_values[$field_id] : '';
         if (!empty($what3words)) {
             $fields[FieldConstants::WHAT3WORDS_FIELD_ID] = array(
                 'label' => __('what3words', 'swiftcomplete'),
