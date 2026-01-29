@@ -94,4 +94,14 @@ class FieldConstants
     {
         return '_shipping_' . str_replace('-', '_', self::WHAT3WORDS_FIELD_ID);
     }
+
+    /**
+     * Get shipping meta key for what3words (legacy)
+     *
+     * @return string
+     */
+    public static function get_legacy_shipping_what3words_meta_key(): string
+    {
+        return 'swiftcomplete_what3words';
+    }
 }

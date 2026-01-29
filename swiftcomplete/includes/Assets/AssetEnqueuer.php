@@ -145,6 +145,21 @@ class AssetEnqueuer implements AssetEnqueuerInterface
                 array()
             );
         }
+        if ($this->page_context->is_my_account_view_order_page()) {
+            $handle = 'swiftcomplete-address-fields';
+            wp_enqueue_script(
+                $handle,
+                $this->plugin_url . 'assets/js/address.js',
+                $deps,
+                $this->version,
+                true
+            );
+            self::invoke_function_inline_script(
+                $handle,
+                'repositionConfirmationFields();',
+                array()
+            );
+        }
     }
 
     /**

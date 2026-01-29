@@ -137,10 +137,6 @@ class OrderDisplayManager implements OrderDisplayInterface
      */
     public function display_on_order(\WC_Order $order): void
     {
-        if ($this->checkout_type_identifier->is_shortcode_checkout()) {
-            return;
-        }
-
         if (!$order instanceof \WC_Order) {
             return;
         }
@@ -149,24 +145,18 @@ class OrderDisplayManager implements OrderDisplayInterface
         $billing_value = $values['billing'];
         $shipping_value = $values['shipping'];
 
-        ?>
-        <div class="order-what3words-container">
-            This is on order page
-        </div>
-        <?php
-
-        // TODO: Replace this with what3words address (if enabled)
-        if ($billing_value || $shipping_value) {
+        if ($billing_value) {
             ?>
-            <section class="woocommerce-customer-details">
-                <h2 class="woocommerce-order-details__title"><?php esc_html_e('Custom Field', 'swiftcomplete'); ?></h2>
-                <?php if ($billing_value): ?>
-                    <p><strong><?php esc_html_e('Billing:', 'swiftcomplete'); ?></strong> <?php echo esc_html($billing_value); ?></p>
-                <?php endif; ?>
-                <?php if ($shipping_value): ?>
-                    <p><strong><?php esc_html_e('Shipping:', 'swiftcomplete'); ?></strong> <?php echo esc_html($shipping_value); ?></p>
-                <?php endif; ?>
-            </section>
+            <p id="what3words-billing">
+                <b>what3words:</b>&nbsp;<?php echo esc_html($billing_value); ?>
+            </p>
+            <?php
+        }
+        if ($shipping_value) {
+            ?>
+            <p id="what3words-shipping">
+                <b>what3words:</b>&nbsp;<?php echo esc_html($shipping_value); ?>
+            </p>
             <?php
         }
     }
@@ -179,6 +169,10 @@ class OrderDisplayManager implements OrderDisplayInterface
      */
     public function display_on_confirmation(int $order_id): void
     {
+        if (!$this->checkout_type_identifier->is_blocks_checkout()) {
+            return;
+        }
+
         $order = wc_get_order($order_id);
         if (!$order) {
             return;
@@ -211,27 +205,13 @@ class OrderDisplayManager implements OrderDisplayInterface
      */
     private function get_field_values(\WC_Order $order): array
     {
-        if ($this->meta_repository instanceof OrderMetaRepository) {
-            return $this->meta_repository->get_field_values_from_order($order);
+        if (!$this->meta_repository instanceof OrderMetaRepository) {
+            return array(
+                'billing' => null,
+                'shipping' => null,
+            );
         }
-
-        // Fallback if repository doesn't have the method
-        $billing_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_billing_what3words_meta_key());
-        $shipping_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_shipping_what3words_meta_key());
-
-        // Try blocks meta keys
-        if (empty($billing_value)) {
-            $billing_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_blocks_billing_what3words_meta_key());
-        }
-
-        if (empty($shipping_value)) {
-            $shipping_value = $this->meta_repository->get($order->get_id(), FieldConstants::get_blocks_shipping_what3words_meta_key());
-        }
-
-        return array(
-            'billing' => $billing_value ?: '',
-            'shipping' => $shipping_value ?: '',
-        );
+        return $this->meta_repository->get_field_values_from_order($order);
     }
 
     public function add_swiftcomplete_order_billing(array $fields, $order = null): array

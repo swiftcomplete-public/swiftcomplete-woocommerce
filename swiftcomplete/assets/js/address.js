@@ -2,7 +2,7 @@
 const sc_what3words = {
   getAddressField(addressType) {
     let address = document.querySelector(
-      `.woocommerce-order .woocommerce-customer-details [class*="${addressType}-address"]`
+      `.woocommerce-customer-details [class*="${addressType}-address"]`
     )?.querySelector('address');
     if (!address) {
       address = document.querySelector(
