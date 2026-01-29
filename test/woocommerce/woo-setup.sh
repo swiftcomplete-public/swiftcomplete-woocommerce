@@ -73,6 +73,7 @@ fi
 
 echo "🌐 Setting site to live (removing Coming Soon mode)..."
 wp option update blog_public 1
-# Disable any maintenance mode that might be active
+wp option update woocommerce_coming_soon no 2>/dev/null || true
+wp option update woocommerce_store_pages_only no 2>/dev/null || true
 wp maintenance-mode deactivate 2>/dev/null || true
 echo "✅ Site is now live!"
