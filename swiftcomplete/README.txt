@@ -60,7 +60,8 @@ Have any questions? Want to learn more about how the SwiftLookup plugin works? G
 
 == Changelog ==
 
-= 1.1.0 =
+= 2.0.0 =
+
 * Added activation/deactivation hooks with comprehensive error handling
 * Automatically deactivate when fatal error occurs
 * Improved WooCommerce dependency checks with multiple safety layers
