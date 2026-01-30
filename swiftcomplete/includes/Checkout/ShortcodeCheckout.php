@@ -89,71 +89,173 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     private function process_address_type_fields(array $address_fields, string $type): array
     {
+        $search = $this->build_search_field_definition($type);
+        $w3w = $this->build_what3words_field_definition($type);
+        $w3w_enabled = (bool) $this->settings_manager->get_setting('w3w_enabled');
+
+        $has_type = !empty($address_fields[$type]) && is_array($address_fields[$type]);
+        $address_fields[$type] = $has_type
+            ? $this->merge_search_field_into_group($address_fields[$type], $type, $search, $w3w, $w3w_enabled)
+            : $this->build_initial_group($search, $w3w, $w3w_enabled);
+
+        $this->assign_field_priorities($address_fields[$type]);
+
+        return $address_fields;
+    }
+
+    /**
+     * Build search field key and definition for an address type.
+     *
+     * @param string $type 'billing' or 'shipping'
+     * @return array{key: string, field: array}
+     */
+    private function build_search_field_definition(string $type): array
+    {
         $field_ids = $this->get_field_ids();
-        $field_suffixes = array(
-            'first_name',
-            'last_name',
-            'country',
-            $field_ids['search_field'],
-            'company',
-            'address_2',
-            'address_1',
-            'city',
-            'postcode',
-            'state',
-            $field_ids['what3words'],
-        );
-        $optional_suffixes = array('company', 'address_2');
+        $key = $type . '_' . $field_ids['search_field'];
         $label = $this->settings_manager->get_setting("{$type}_label", 'Address Finder');
         $placeholder = $this->settings_manager->get_setting("{$type}_placeholder", 'Type your address or postcode...');
-        $address_search_field = array(
-            'label' => __($label, 'woocommerce'),
-            'required' => false,
-            'class' => array('form-row-wide'),
-            'type' => 'text',
-            'placeholder' => $placeholder,
+
+        return array(
+            'key' => $key,
+            'field' => array_merge(
+                array(
+                    'label' => __($label, 'swiftcomplete'),
+                    'required' => false,
+                    'class' => array('form-row-wide'),
+                    'type' => 'text',
+                    'placeholder' => $placeholder,
+                ),
+                array('id' => $key)
+            ),
         );
+    }
 
-        $fields = array();
-        foreach ($field_suffixes as $suffix) {
-            $field_name = $type . '_' . $suffix;
-            if (in_array($suffix, $optional_suffixes, true) && !array_key_exists($field_name, $address_fields[$type])) {
-                continue;
-            }
-            $fields[] = $field_name;
-        }
+    /**
+     * Build what3words field key and definition for an address type.
+     *
+     * @param string $type 'billing' or 'shipping'
+     * @return array{key: string, field: array}
+     */
+    private function build_what3words_field_definition(string $type): array
+    {
+        $field_ids = $this->get_field_ids();
+        $key = $type . '_' . $field_ids['what3words'];
 
-        $field_id = "{$type}_" . $field_ids['search_field'];
-        $address_fields[$type][$field_id] = array_merge(
-            $address_search_field,
-            array('id' => $field_id)
+        return array(
+            'key' => $key,
+            'field' => array_merge(
+                array(
+                    'label' => __('what3words address', 'swiftcomplete'),
+                    'required' => false,
+                    'class' => array('form-row-wide'),
+                    'type' => 'text',
+                ),
+                array('id' => $key)
+            ),
         );
+    }
 
-        $w3w_enabled = $this->settings_manager->get_setting('w3w_enabled');
+    /**
+     * Build initial address group with only search (and optionally what3words) field.
+     *
+     * @param array{key: string, field: array} $search
+     * @param array{key: string, field: array} $w3w
+     * @param bool $w3w_enabled
+     * @return array<string, array>
+     */
+    private function build_initial_group(array $search, array $w3w, bool $w3w_enabled): array
+    {
+        $group = array($search['key'] => $search['field']);
         if ($w3w_enabled) {
-            $field_id = "{$type}_" . $field_ids['what3words'];
-            if (!isset($address_fields[$type][$field_id])) {
-                $address_fields[$type][$field_id] = array_merge(
-                    array(
-                        'label' => __('what3words address', 'woocommerce'),
-                        'required' => false,
-                        'class' => array('form-row-wide'),
-                        'type' => 'text',
-                    ),
-                    array('id' => $field_id)
-                );
+            $group[$w3w['key']] = $w3w['field'];
+        }
+        return $group;
+    }
+
+    /**
+     * Merge search field (and optionally what3words) into existing group, inserting search before address_1.
+     *
+     * @param array<string, array> $existing
+     * @param string $type
+     * @param array{key: string, field: array} $search
+     * @param array{key: string, field: array} $w3w
+     * @param bool $w3w_enabled
+     * @return array<string, array>
+     */
+    private function merge_search_field_into_group(array $existing, string $type, array $search, array $w3w, bool $w3w_enabled): array
+    {
+        $search_value = isset($existing[$search['key']]) ? $existing[$search['key']] : $search['field'];
+        $new_group = $this->rebuild_group_with_search_before_anchor(
+            $existing,
+            $type . '_address_1',
+            $search['key'],
+            $search_value
+        );
+        $this->ensure_what3words_in_group($new_group, $existing, $w3w, $w3w_enabled);
+        return $new_group;
+    }
+
+    /**
+     * Rebuild address group with search field inserted before anchor key; preserves order and unknown keys.
+     *
+     * @param array<string, array> $existing
+     * @param string $anchor_key
+     * @param string $search_key
+     * @param array $search_value
+     * @return array<string, array>
+     */
+    private function rebuild_group_with_search_before_anchor(array $existing, string $anchor_key, string $search_key, array $search_value): array
+    {
+        $new_group = array();
+        $inserted = false;
+        foreach ($existing as $key => $value) {
+            if (!$inserted && $key === $anchor_key) {
+                $new_group[$search_key] = $search_value;
+                $inserted = true;
+            }
+            if ($key !== $search_key) {
+                $new_group[$key] = $value;
             }
         }
+        if (!$inserted) {
+            $new_group[$search_key] = $search_value;
+        }
+        return $new_group;
+    }
 
+    /**
+     * Add what3words field to group when enabled and not already present.
+     *
+     * @param array<string, array> $group Modified by reference
+     * @param array<string, array> $existing
+     * @param array{key: string, field: array} $w3w
+     * @param bool $w3w_enabled
+     * @return void
+     */
+    private function ensure_what3words_in_group(array &$group, array $existing, array $w3w, bool $w3w_enabled): void
+    {
+        if (!$w3w_enabled || isset($group[$w3w['key']])) {
+            return;
+        }
+        $group[$w3w['key']] = isset($existing[$w3w['key']]) ? $existing[$w3w['key']] : $w3w['field'];
+    }
+
+    /**
+     * Assign incremental priorities to fields in a group (by reference).
+     *
+     * @param array<string, array> $group
+     * @return void
+     */
+    private function assign_field_priorities(array &$group): void
+    {
         $priority = 0;
-        foreach ($fields as $field_name) {
-            if (isset($address_fields[$type][$field_name])) {
-                $address_fields[$type][$field_name]['priority'] = $priority;
+        foreach ($group as $key => $args) {
+            if (is_array($args)) {
+                $group[$key]['priority'] = $priority;
                 $priority += 10;
             }
         }
-
-        return $address_fields;
     }
 
     /**
