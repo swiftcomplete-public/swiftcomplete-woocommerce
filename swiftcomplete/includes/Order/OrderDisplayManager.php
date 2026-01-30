@@ -81,10 +81,6 @@ class OrderDisplayManager implements OrderDisplayInterface
             return;
         }
 
-        // Display in admin order details
-        // $this->hook_manager->register_action('woocommerce_admin_order_data_after_billing_address', array($this, 'display_what3words_after_billing_address'), 10, 1);
-        // $this->hook_manager->register_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'display_what3words_after_shipping_address'), 10, 1);
-
         // Display on order confirmation page
         $this->hook_manager->register_action('woocommerce_order_details_after_customer_details', array($this, 'display_on_order'), 10, 1);
         $this->hook_manager->register_action('woocommerce_thankyou', array($this, 'display_on_confirmation'), 10, 1);
@@ -92,41 +88,6 @@ class OrderDisplayManager implements OrderDisplayInterface
         // Add fields to order in admin
         $this->hook_manager->register_action('woocommerce_admin_shipping_fields', array($this, 'add_swiftcomplete_order_shipping'), 10, 2);
         $this->hook_manager->register_action('woocommerce_admin_billing_fields', array($this, 'add_swiftcomplete_order_billing'), 10, 2);
-    }
-
-    /**
-     * Display field in admin order details
-     *
-     * @param \WC_Order $order Order object
-     * @return void
-     */
-    public function display_what3words_after_billing_address(\WC_Order $order): void
-    {
-        $this->display_in_admin($order, 'billing');
-    }
-
-    public function display_what3words_after_shipping_address(\WC_Order $order): void
-    {
-        $this->display_in_admin($order, 'shipping');
-    }
-
-    private function display_in_admin(\WC_Order $order, string $address_type): void
-    {
-        if (!$order instanceof \WC_Order) {
-            return;
-        }
-
-        $values = $this->get_field_values($order);
-        $what3words = $values[$address_type];
-
-        if (!empty($what3words)) {
-            ?>
-            <p id="shipping_what3words_fallback">
-                <strong><?php esc_html_e('what3words:', 'swiftcomplete'); ?></strong>
-                <?php echo esc_html($what3words); ?>
-            </p>
-            <?php
-        }
     }
 
     /**
