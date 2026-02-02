@@ -189,7 +189,7 @@ class AssetEnqueuer
             $this->version,
             true
         );
-        $this->enqueue_component_loader(array_merge($deps, array($handle)));
+        $component_handle = $this->enqueue_component_loader(array_merge($deps, array($handle)));
         self::invoke_function_inline_script(
             $handle,
             'const COMPONENT_DEFAULTS = %s;',
@@ -209,6 +209,14 @@ class AssetEnqueuer
             array(),
             'after'
         );
+
+        if ($this->page_context->is_swiftcomplete_settings_page()) {
+            self::invoke_function_inline_script(
+                $component_handle,
+                'setupLocationBiasedSearch(%s);',
+                array($this->settings_manager->get_setting('api_key'))
+            );
+        }
     }
 
     private function enqueue_default_scripts(): array

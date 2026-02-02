@@ -894,3 +894,18 @@ function loadSwiftcompleteComponent(config) {
         sc_blocks_component_loader.init(config);
     }
 }
+
+function setupLocationBiasedSearch(key) {
+    const field = document.getElementById('swiftcomplete_bias_towards');
+    swiftcomplete.controls["Places search"] = new swiftcomplete.SwiftLookup({
+        field,
+        key,
+        searchFor: ""
+    });
+    const biasTowards = document.getElementById('swiftcomplete_bias_towards_lat_lon');
+    field.addEventListener('swiftcomplete:swiftlookup:selected', function (e) {
+        if (biasTowards) {
+            biasTowards.value = e.detail.result.geometry.centre.lat + ',' + e.detail.result.geometry.centre.lon;
+        }
+    }, false);
+}

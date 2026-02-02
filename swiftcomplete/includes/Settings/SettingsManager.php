@@ -383,12 +383,7 @@ class SettingsManager
     $hide_fields = isset($settings['hide_fields']) && $settings['hide_fields'] === true;
 
     // Get bias towards lat/lon (prefer explicit lat/lon value if present)
-    $bias_towards = '';
-    if (isset($settings['bias_towards_lat_lon'])) {
-      $bias_towards = $settings['bias_towards_lat_lon'];
-    } elseif (isset($settings['bias_towards'])) {
-      $bias_towards = $settings['bias_towards'];
-    }
+    $bias_towards = isset($settings['bias_towards_lat_lon']) ? $settings['bias_towards_lat_lon'] : '';
 
     // Get labels
     $billing_label = isset($settings['billing_label']) ? $settings['billing_label'] : '';

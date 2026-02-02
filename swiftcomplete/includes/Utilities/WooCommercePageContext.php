@@ -105,5 +105,22 @@ class WooCommercePageContext
     global $wp;
     return absint($wp->query_vars['view-order'] ?? 0);
   }
+
+
+  // add function to check if the current page is the swiftcomplete 
+  public function is_swiftcomplete_settings_page(): bool
+  {
+    if (!function_exists('is_admin') || !is_admin()) {
+      return false;
+    }
+
+    global $pagenow;
+    if (!isset($pagenow) || $pagenow !== 'options-general.php') {
+      return false;
+    }
+
+    $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+    return $page === 'swiftcomplete';
+  }
 }
 

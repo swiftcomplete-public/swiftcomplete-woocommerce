@@ -7,34 +7,6 @@
 
 defined('ABSPATH') || exit;
 ?>
-<script type="text/javascript">
-    !function (e, t, c) {
-        e.swiftcomplete = e.swiftcomplete || {};
-        var s = t.createElement("script");
-        s.async = !0, s.src = c;
-        var r = t.getElementsByTagName("script")[0];
-        r.parentNode.insertBefore(s, r)
-    }(window, document, "https://www.swiftcomplete.com/js/what3words.js");
-
-    var SWIFTCOMPLETE_API_KEY = "";
-    var SWIFTCOMPLETE_SEARCH_FIELD_ID = "swiftcomplete_bias_towards";
-
-    function initialiseSwiftcomplete() {
-        swiftcomplete.runWhenReady(function () {
-            swiftcomplete.controls["Places search"] = new swiftcomplete.SwiftLookup({
-                field: document.getElementById(SWIFTCOMPLETE_SEARCH_FIELD_ID),
-                key: SWIFTCOMPLETE_API_KEY,
-                searchFor: ""
-            });
-
-            document.getElementById(SWIFTCOMPLETE_SEARCH_FIELD_ID).addEventListener('swiftcomplete:swiftlookup:selected', function (e) {
-                document.getElementById('swiftcomplete_bias_towards_lat_lon').value = e.detail.result.geometry.centre.lat + ',' + e.detail.result.geometry.centre.lon;
-            }, false);
-        });
-    }
-
-    window.addEventListener("load", initialiseSwiftcomplete, false);
-</script>
 <style>
     .swiftcomplete-card {
         background-color: #FFF;
@@ -59,20 +31,6 @@ defined('ABSPATH') || exit;
         margin-left: 10px;
     }
 </style>
-<script type="text/javascript">
-    window.addEventListener('load', function () {
-        if (document.getElementById('swiftcomplete_api_key').value.length == 0) {
-            document.getElementById('swiftcomplete-setup-instructions').style.display = 'block';
-        } else {
-            document.getElementById('swiftcomplete-existing-integration-instructions').style.display = 'block';
-        }
-
-        document.getElementById('swiftcomplete-run-setup-again').onclick = function () {
-            document.getElementById('swiftcomplete-setup-instructions').style.display = 'block';
-            document.getElementById('swiftcomplete-existing-integration-instructions').style.display = 'none';
-        };
-    });
-</script>
 <div class="swiftcomplete-card">
     <div style="display: grid; column-gap: 50px; max-width: 1200px;">
         <div style="grid-column-start: 1; grid-column-end: 3;">
