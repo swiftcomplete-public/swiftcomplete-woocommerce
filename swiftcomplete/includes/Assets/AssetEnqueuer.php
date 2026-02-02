@@ -181,7 +181,7 @@ class AssetEnqueuer
     public function enqueue_admin_scripts(): void
     {
         $deps = $this->enqueue_default_scripts();
-        $handle = 'swiftcomplete-edit-address';
+        $handle = 'swiftcomplete-address';
         wp_enqueue_script(
             $handle,
             $this->plugin_url . 'assets/js/admin.js',
@@ -214,7 +214,8 @@ class AssetEnqueuer
             self::invoke_function_inline_script(
                 $component_handle,
                 'setupLocationBiasedSearch(%s);',
-                array($this->settings_manager->get_setting('api_key'))
+                array($this->settings_manager->get_setting('api_key')),
+                'after',
             );
         }
     }
