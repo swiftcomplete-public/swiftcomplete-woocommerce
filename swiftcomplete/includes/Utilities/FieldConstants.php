@@ -104,4 +104,17 @@ class FieldConstants
     {
         return 'swiftcomplete_what3words';
     }
+
+    /**
+     * Get normalized field IDs for checkout (what3words and search_field with underscores).
+     *
+     * @return array{what3words: string, search_field: string}
+     */
+    public static function get_field_ids(): array
+    {
+        return array(
+            'what3words' => str_replace('-', '_', self::WHAT3WORDS_FIELD_ID),
+            'search_field' => str_replace('-', '_', self::ADDRESS_SEARCH_FIELD_ID),
+        );
+    }
 }

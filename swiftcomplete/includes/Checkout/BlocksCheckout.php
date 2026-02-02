@@ -8,7 +8,8 @@
 namespace Swiftcomplete\Checkout;
 
 use Swiftcomplete\Contracts\CheckoutInterface;
-use Swiftcomplete\Contracts\OrderMetaRepositoryInterface;
+use Swiftcomplete\Customer\CustomerMeta;
+use Swiftcomplete\Order\OrderMeta;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
 use Swiftcomplete\Utilities\FieldConstants;
 
@@ -20,11 +21,18 @@ defined('ABSPATH') || exit;
 class BlocksCheckout implements CheckoutInterface
 {
     /**
-     * Order meta repository
+     * Order meta
      *
-     * @var OrderMetaRepositoryInterface
+     * @var OrderMeta
      */
-    private $meta_repository;
+    private $order_meta;
+
+    /**
+     * Customer what3words meta
+     *
+     * @var CustomerMeta
+     */
+    private $customer_meta;
 
     /**
      * Checkout type detector
@@ -36,14 +44,17 @@ class BlocksCheckout implements CheckoutInterface
     /**
      * Constructor
      *
-     * @param OrderMetaRepositoryInterface $meta_repository Order meta repository
-     * @param CheckoutTypeIdentifier         $checkout_type_identifier   Checkout type detector
+     * @param OrderMeta               $order_meta               Order meta
+     * @param CustomerMeta  $customer_meta Customer what3words meta
+     * @param CheckoutTypeIdentifier  $checkout_type_identifier Checkout type detector
      */
     public function __construct(
-        OrderMetaRepositoryInterface $meta_repository,
+        OrderMeta $order_meta,
+        CustomerMeta $customer_meta,
         CheckoutTypeIdentifier $checkout_type_identifier
     ) {
-        $this->meta_repository = $meta_repository;
+        $this->order_meta = $order_meta;
+        $this->customer_meta = $customer_meta;
         $this->checkout_type_identifier = $checkout_type_identifier;
     }
 
@@ -73,30 +84,21 @@ class BlocksCheckout implements CheckoutInterface
         }
         $swiftcomplete_data = $data['swiftcomplete'];
 
-        $field_ids = $this->get_field_ids();
-
         $billing_value = $this->extract_sanitized_value($swiftcomplete_data, 'billing_what3words');
         $shipping_value = $this->extract_sanitized_value($swiftcomplete_data, 'shipping_what3words');
+
         if ($billing_value) {
-            $this->meta_repository->save($order->get_id(), '_billing_' . $field_ids['what3words'], $billing_value);
-            $this->meta_repository->save($order->get_id(), FieldConstants::get_blocks_billing_what3words_meta_key(), $billing_value);
+            $this->order_meta->save($order->get_id(), FieldConstants::get_billing_what3words_meta_key(), $billing_value);
+            $this->order_meta->save($order->get_id(), FieldConstants::get_blocks_billing_what3words_meta_key(), $billing_value);
         }
 
         if ($shipping_value) {
-            $this->meta_repository->save($order->get_id(), '_shipping_' . $field_ids['what3words'], $shipping_value);
-            $this->meta_repository->save($order->get_id(), FieldConstants::get_blocks_shipping_what3words_meta_key(), $shipping_value);
+            $this->order_meta->save($order->get_id(), FieldConstants::get_shipping_what3words_meta_key(), $shipping_value);
+            $this->order_meta->save($order->get_id(), FieldConstants::get_blocks_shipping_what3words_meta_key(), $shipping_value);
         }
 
-        // Save to customer meta if user is logged in
         $customer_id = $order->get_customer_id();
-        if ($customer_id > 0) {
-            if ($billing_value) {
-                update_user_meta($customer_id, '_billing_' . $field_ids['what3words'], $billing_value);
-            }
-            if ($shipping_value) {
-                update_user_meta($customer_id, '_shipping_' . $field_ids['what3words'], $shipping_value);
-            }
-        }
+        $this->customer_meta->save_what3words($customer_id, $billing_value, $shipping_value);
     }
 
     public function extract_extension_data_from_request(\WP_REST_Request $request): array
@@ -133,18 +135,6 @@ class BlocksCheckout implements CheckoutInterface
         return sanitize_text_field($swiftcomplete_data[$key]);
     }
 
-    /**
-     * Get the field ID for this strategy (what3words)
-     *
-     * @return string
-     */
-    public function get_field_ids(): array
-    {
-        return array(
-            'what3words' => str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID),
-            'search_field' => str_replace('-', '_', FieldConstants::ADDRESS_SEARCH_FIELD_ID),
-        );
-    }
 
     /**
      * Check if this strategy applies to current checkout

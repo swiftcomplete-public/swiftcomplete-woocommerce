@@ -8,7 +8,8 @@
 namespace Swiftcomplete\Checkout;
 
 use Swiftcomplete\Contracts\CheckoutInterface;
-use Swiftcomplete\Contracts\OrderMetaRepositoryInterface;
+use Swiftcomplete\Customer\CustomerMeta;
+use Swiftcomplete\Order\OrderMeta;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
 use Swiftcomplete\Utilities\FieldConstants;
 use Swiftcomplete\Settings\SettingsManager;
@@ -21,11 +22,18 @@ defined('ABSPATH') || exit;
 class ShortcodeCheckout implements CheckoutInterface
 {
     /**
-     * Order meta repository
+     * Order meta
      *
-     * @var OrderMetaRepositoryInterface
+     * @var OrderMeta
      */
-    private $meta_repository;
+    private $order_meta;
+
+    /**
+     * Customer what3words meta
+     *
+     * @var CustomerMeta
+     */
+    private $customer_meta;
 
     /**
      * Checkout type detector
@@ -33,7 +41,6 @@ class ShortcodeCheckout implements CheckoutInterface
      * @var CheckoutTypeIdentifier
      */
     private $checkout_type_identifier;
-
 
     /**
      * Settings manager
@@ -45,15 +52,19 @@ class ShortcodeCheckout implements CheckoutInterface
     /**
      * Constructor
      *
-     * @param OrderMetaRepositoryInterface $meta_repository Order meta repository
-     * @param CheckoutTypeIdentifier        $checkout_type_identifier   Checkout type detector
+     * @param OrderMeta              $order_meta               Order meta
+     * @param CustomerMeta  $customer_meta Customer what3words meta
+     * @param CheckoutTypeIdentifier $checkout_type_identifier Checkout type detector
+     * @param SettingsManager        $settings_manager        Settings manager
      */
     public function __construct(
-        OrderMetaRepositoryInterface $meta_repository,
+        OrderMeta $order_meta,
+        CustomerMeta $customer_meta,
         CheckoutTypeIdentifier $checkout_type_identifier,
         SettingsManager $settings_manager
     ) {
-        $this->meta_repository = $meta_repository;
+        $this->order_meta = $order_meta;
+        $this->customer_meta = $customer_meta;
         $this->checkout_type_identifier = $checkout_type_identifier;
         $this->settings_manager = $settings_manager;
     }
@@ -111,7 +122,7 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     private function build_search_field_definition(string $type): array
     {
-        $field_ids = $this->get_field_ids();
+        $field_ids = FieldConstants::get_field_ids();
         $key = $type . '_' . $field_ids['search_field'];
         $label = $this->settings_manager->get_setting("{$type}_label", 'Address Finder');
         $placeholder = $this->settings_manager->get_setting("{$type}_placeholder", 'Type your address or postcode...');
@@ -139,7 +150,7 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     private function build_what3words_field_definition(string $type): array
     {
-        $field_ids = $this->get_field_ids();
+        $field_ids = FieldConstants::get_field_ids();
         $key = $type . '_' . $field_ids['what3words'];
 
         return array(
@@ -267,7 +278,7 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function save_extension_data_to_order(\WC_Order $order, array $data): void
     {
-        $field_ids = $this->get_field_ids();
+        $field_ids = FieldConstants::get_field_ids();
         $billing_key = 'billing_' . $field_ids['what3words'];
         $shipping_key = 'shipping_' . $field_ids['what3words'];
 
@@ -289,22 +300,14 @@ class ShortcodeCheckout implements CheckoutInterface
 
         // Save to order meta
         if ($billing_value) {
-            $this->meta_repository->save($order->get_id(), FieldConstants::get_billing_what3words_meta_key(), $billing_value);
+            $this->order_meta->save($order->get_id(), FieldConstants::get_billing_what3words_meta_key(), $billing_value);
         }
         if ($shipping_value) {
-            $this->meta_repository->save($order->get_id(), FieldConstants::get_shipping_what3words_meta_key(), $shipping_value);
+            $this->order_meta->save($order->get_id(), FieldConstants::get_shipping_what3words_meta_key(), $shipping_value);
         }
 
-        // Save to customer meta if user is logged in
         $customer_id = $order->get_customer_id();
-        if ($customer_id > 0) {
-            if ($billing_value) {
-                update_user_meta($customer_id, '_billing_' . $field_ids['what3words'], $billing_value);
-            }
-            if ($shipping_value) {
-                update_user_meta($customer_id, '_shipping_' . $field_ids['what3words'], $shipping_value);
-            }
-        }
+        $this->customer_meta->save_what3words($customer_id, $billing_value, $shipping_value);
     }
 
     /**
@@ -318,7 +321,7 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function remove_optional_fields_label(string $field, string $key, array $args, string $value): string
     {
-        $field_ids = $this->get_field_ids();
+        $field_ids = FieldConstants::get_field_ids();
         if (
             is_checkout() &&
             !is_wc_endpoint_url() &&
@@ -340,38 +343,20 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function get_customer_field_value(string $field_key): ?string
     {
-        if (!is_user_logged_in()) {
-            return null;
+        $field_ids = FieldConstants::get_field_ids();
+        $billing_key = 'billing_' . $field_ids['what3words'];
+        $shipping_key = 'shipping_' . $field_ids['what3words'];
+
+        $values = $this->customer_meta->get_current_user_what3words();
+
+        if ($field_key === $billing_key && $values['billing'] !== '') {
+            return $values['billing'];
+        }
+        if ($field_key === $shipping_key && $values['shipping'] !== '') {
+            return $values['shipping'];
         }
 
-        $field_ids = $this->get_field_ids();
-        $what3words_field_id = $field_ids['what3words'];
-        $billing_key = 'billing_' . $what3words_field_id;
-        $shipping_key = 'shipping_' . $what3words_field_id;
-
-        $user_id = get_current_user_id();
-        $value = null;
-
-        if ($field_key === $billing_key) {
-            $value = get_user_meta($user_id, '_billing_' . $what3words_field_id, true);
-        } elseif ($field_key === $shipping_key) {
-            $value = get_user_meta($user_id, '_shipping_' . $what3words_field_id, true);
-        }
-
-        return $value ? sanitize_text_field($value) : null;
-    }
-
-    /**
-     * Get the field ID for this strategy
-     *
-     * @return string
-     */
-    public function get_field_ids(): array
-    {
-        return array(
-            'what3words' => str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID),
-            'search_field' => str_replace('-', '_', FieldConstants::ADDRESS_SEARCH_FIELD_ID),
-        );
+        return null;
     }
 
     /**

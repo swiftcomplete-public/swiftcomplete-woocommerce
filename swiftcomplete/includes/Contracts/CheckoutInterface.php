@@ -24,13 +24,6 @@ interface CheckoutInterface
     public function save_extension_data_to_order(\WC_Order $order, array $data): void;
 
     /**
-     * Get the field ID for this strategy
-     *
-     * @return string
-     */
-    public function get_field_ids(): array;
-
-    /**
      * Check if this strategy applies to current checkout
      *
      * @return bool

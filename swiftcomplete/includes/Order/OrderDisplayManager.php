@@ -7,8 +7,6 @@
 
 namespace Swiftcomplete\Order;
 
-use Swiftcomplete\Contracts\OrderDisplayInterface;
-use Swiftcomplete\Contracts\OrderMetaRepositoryInterface;
 use Swiftcomplete\Core\HookManager;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
 use Swiftcomplete\Utilities\FieldConstants;
@@ -19,14 +17,14 @@ defined('ABSPATH') || exit;
 /**
  * Manages order display functionality
  */
-class OrderDisplayManager implements OrderDisplayInterface
+class OrderDisplayManager
 {
     /**
-     * Order meta repository
+     * Order meta
      *
-     * @var OrderMetaRepositoryInterface
+     * @var OrderMeta
      */
-    private $meta_repository;
+    private $order_meta;
 
     /**
      * Checkout type detector
@@ -52,17 +50,17 @@ class OrderDisplayManager implements OrderDisplayInterface
     /**
      * Constructor
      *
-     * @param OrderMetaRepositoryInterface $meta_repository         Order meta repository
+     * @param OrderMeta $order_meta         Order meta
      * @param CheckoutTypeIdentifier        $checkout_type_identifier Checkout type detector
      * @param HookManager                  $hook_manager            Hook manager
      */
     public function __construct(
-        OrderMetaRepositoryInterface $meta_repository,
+        OrderMeta $order_meta,
         CheckoutTypeIdentifier $checkout_type_identifier,
         HookManager $hook_manager,
         SettingsManager $settings_manager
     ) {
-        $this->meta_repository = $meta_repository;
+        $this->order_meta = $order_meta;
         $this->checkout_type_identifier = $checkout_type_identifier;
         $this->hook_manager = $hook_manager;
         $this->settings_manager = $settings_manager;
@@ -102,24 +100,7 @@ class OrderDisplayManager implements OrderDisplayInterface
             return;
         }
 
-        $values = $this->get_field_values($order);
-        $billing_value = $values['billing'];
-        $shipping_value = $values['shipping'];
-
-        if ($billing_value) {
-            ?>
-            <p id="what3words-billing">
-                <b>what3words:</b>&nbsp;<?php echo esc_html($billing_value); ?>
-            </p>
-            <?php
-        }
-        if ($shipping_value) {
-            ?>
-            <p id="what3words-shipping">
-                <b>what3words:</b>&nbsp;<?php echo esc_html($shipping_value); ?>
-            </p>
-            <?php
-        }
+        $this->render_what3words_on_order($order);
     }
 
     /**
@@ -139,9 +120,15 @@ class OrderDisplayManager implements OrderDisplayInterface
             return;
         }
 
+        $this->render_what3words_on_order($order);
+    }
+
+    private function render_what3words_on_order(\WC_Order $order): void
+    {
         $values = $this->get_field_values($order);
         $billing_value = $values['billing'];
         $shipping_value = $values['shipping'];
+
         if ($billing_value) {
             ?>
             <p id="what3words-billing">
@@ -166,13 +153,13 @@ class OrderDisplayManager implements OrderDisplayInterface
      */
     private function get_field_values(\WC_Order $order): array
     {
-        if (!$this->meta_repository instanceof OrderMetaRepository) {
+        if (!$this->order_meta instanceof OrderMeta) {
             return array(
                 'billing' => null,
                 'shipping' => null,
             );
         }
-        return $this->meta_repository->get_field_values_from_order($order);
+        return $this->order_meta->get_field_values_from_order($order);
     }
 
     public function add_swiftcomplete_order_billing(array $fields, $order = null): array

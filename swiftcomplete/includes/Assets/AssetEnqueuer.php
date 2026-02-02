@@ -7,7 +7,7 @@
 
 namespace Swiftcomplete\Assets;
 
-use Swiftcomplete\Contracts\AssetEnqueuerInterface;
+use Swiftcomplete\Customer\CustomerMeta;
 use Swiftcomplete\Core\HookManager;
 use Swiftcomplete\Settings\SettingsManager;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
@@ -19,7 +19,7 @@ defined('ABSPATH') || exit;
 /**
  * Handles script and style enqueuing
  */
-class AssetEnqueuer implements AssetEnqueuerInterface
+class AssetEnqueuer
 {
     /**
      * Checkout type detector
@@ -50,6 +50,13 @@ class AssetEnqueuer implements AssetEnqueuerInterface
     private $settings_manager;
 
     /**
+     * Customer what3words meta
+     *
+     * @var CustomerMeta
+     */
+    private $customer_meta;
+
+    /**
      * Plugin version
      *
      * @var string
@@ -66,17 +73,20 @@ class AssetEnqueuer implements AssetEnqueuerInterface
     /**
      * Constructor
      *
-     * @param CheckoutTypeIdentifier $checkout_type_identifier Checkout type detector
-     * @param HookManager         $hook_manager  Hook manager
-     * @param SettingsManager     $settings_manager Settings manager
-     * @param string                          $version       Plugin version
-     * @param string                          $plugin_url    Plugin URL
+     * @param CheckoutTypeIdentifier          $checkout_type_identifier  Checkout type detector
+     * @param WooCommercePageContext        $page_context             Page context
+     * @param HookManager                   $hook_manager             Hook manager
+     * @param SettingsManager               $settings_manager         Settings manager
+     * @param CustomerMeta $customer_meta Customer what3words meta
+     * @param string                        $version                  Plugin version
+     * @param string                        $plugin_url               Plugin URL
      */
     public function __construct(
         CheckoutTypeIdentifier $checkout_type_identifier,
         WooCommercePageContext $page_context,
         HookManager $hook_manager,
         SettingsManager $settings_manager,
+        CustomerMeta $customer_meta,
         string $version,
         string $plugin_url
     ) {
@@ -84,6 +94,7 @@ class AssetEnqueuer implements AssetEnqueuerInterface
         $this->page_context = $page_context;
         $this->hook_manager = $hook_manager;
         $this->settings_manager = $settings_manager;
+        $this->customer_meta = $customer_meta;
         $this->version = $version;
         $this->plugin_url = $plugin_url;
         $this->register_hooks();
@@ -342,43 +353,12 @@ class AssetEnqueuer implements AssetEnqueuerInterface
             'shippingLabel' => $this->settings_manager->get_setting('shipping_label', 'Address Finder'),
         );
 
-        // Add customer values if user is logged in
-        $customer_values = $this->get_customer_what3words_values();
+        $customer_values = $this->customer_meta->get_current_user_what3words();
         if (!empty($customer_values['billing']) || !empty($customer_values['shipping'])) {
             $config['customerValues'] = $customer_values;
         }
 
         return $config;
-    }
-
-    /**
-     * Get customer what3words values for logged-in user
-     *
-     * @return array{billing: string, shipping: string} Customer values
-     */
-    private function get_customer_what3words_values(): array
-    {
-        $billing_value = '';
-        $shipping_value = '';
-
-        if (is_user_logged_in()) {
-            $user_id = get_current_user_id();
-            $field_id = str_replace('-', '_', FieldConstants::WHAT3WORDS_FIELD_ID);
-            $billing_key = '_billing_' . $field_id;
-            $shipping_key = '_shipping_' . $field_id;
-
-            $billing_value = get_user_meta($user_id, $billing_key, true);
-            $shipping_value = get_user_meta($user_id, $shipping_key, true);
-
-            // Sanitize values
-            $billing_value = $billing_value ? sanitize_text_field($billing_value) : '';
-            $shipping_value = $shipping_value ? sanitize_text_field($shipping_value) : '';
-        }
-
-        return array(
-            'billing' => $billing_value,
-            'shipping' => $shipping_value,
-        );
     }
 
     /**

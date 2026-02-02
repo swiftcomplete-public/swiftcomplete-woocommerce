@@ -11,8 +11,9 @@ use Swiftcomplete\Assets\AssetEnqueuer;
 use Swiftcomplete\Checkout\CheckoutHandler;
 use Swiftcomplete\Checkout\BlocksCheckout;
 use Swiftcomplete\Checkout\ShortcodeCheckout;
+use Swiftcomplete\Customer\CustomerMeta;
 use Swiftcomplete\Order\OrderDisplayManager;
-use Swiftcomplete\Order\OrderMetaRepository;
+use Swiftcomplete\Order\OrderMeta;
 use Swiftcomplete\Settings\SettingsManager;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
 use Swiftcomplete\Utilities\WooCommercePageContext;
@@ -99,14 +100,19 @@ class Plugin
             return new WooCommercePageContext();
         });
 
-        $this->container->register_singleton('meta_repository', function () {
-            return new OrderMetaRepository();
+        $this->container->register_singleton('order_meta', function () {
+            return new OrderMeta();
+        });
+
+        $this->container->register_singleton('customer_meta', function () {
+            return new CustomerMeta();
         });
 
         // Register checkout strategies
         $this->container->register('shortcode_strategy', function ($container) {
             return new ShortcodeCheckout(
-                $container->get('meta_repository'),
+                $container->get('order_meta'),
+                $container->get('customer_meta'),
                 $container->get('checkout_type_identifier'),
                 $container->get('settings_manager')
             );
@@ -114,7 +120,8 @@ class Plugin
 
         $this->container->register('blocks_strategy', function ($container) {
             return new BlocksCheckout(
-                $container->get('meta_repository'),
+                $container->get('order_meta'),
+                $container->get('customer_meta'),
                 $container->get('checkout_type_identifier')
             );
         });
@@ -134,7 +141,7 @@ class Plugin
         // Register order display manager
         $this->container->register_singleton('order_display', function ($container) {
             return new OrderDisplayManager(
-                $container->get('meta_repository'),
+                $container->get('order_meta'),
                 $container->get('checkout_type_identifier'),
                 $container->get('hook_manager'),
                 $container->get('settings_manager')
@@ -148,6 +155,7 @@ class Plugin
                 $container->get('wc_page_context'),
                 $container->get('hook_manager'),
                 $container->get('settings_manager'),
+                $container->get('customer_meta'),
                 self::VERSION,
                 SWIFTCOMPLETE_PLUGIN_URL
             );

@@ -1,21 +1,20 @@
 <?php
 /**
- * Order Meta Repository
+ * Order Meta
  *
  * @package Swiftcomplete
  */
 
 namespace Swiftcomplete\Order;
 
-use Swiftcomplete\Contracts\OrderMetaRepositoryInterface;
 use Swiftcomplete\Utilities\FieldConstants;
 
 defined('ABSPATH') || exit;
 
 /**
- * Repository for order meta operations
+ * Handles reading and writing order meta (including what3words field values)
  */
-class OrderMetaRepository implements OrderMetaRepositoryInterface
+class OrderMeta
 {
     /**
      * Save meta value to order

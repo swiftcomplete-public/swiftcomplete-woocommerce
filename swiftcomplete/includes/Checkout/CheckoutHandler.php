@@ -108,7 +108,7 @@ class CheckoutHandler
         if ($order) {
             $shortcode_checkout = $this->get_checkout('shortcode');
             if ($shortcode_checkout instanceof ShortcodeCheckout) {
-                $shortcode_checkout->save_extension_data_to_order($order, $_POST);
+                $shortcode_checkout->save_extension_data_to_order($order, $data);
             }
         }
     }
