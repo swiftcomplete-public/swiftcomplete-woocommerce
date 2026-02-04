@@ -299,13 +299,6 @@ class AssetEnqueuer
             true
         );
 
-        wp_enqueue_style(
-            $handle,
-            $this->plugin_url . 'assets/css/' . ($is_blocks ? 'blocks/' : '') . 'fields.css',
-            array(),
-            $this->version
-        );
-
         if ($is_blocks) {
             self::invoke_function_inline_script(
                 $handle,
