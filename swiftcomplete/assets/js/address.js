@@ -1,3 +1,4 @@
+'use strict';
 
 const sc_what3words = {
   getAddressField(addressType) {
