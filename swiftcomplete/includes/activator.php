@@ -24,16 +24,13 @@ class Activator
    */
   public static function activate()
   {
-    // Define activation flag for error handlers
     if (!defined('SWIFTCOMPLETE_ACTIVATING')) {
       define('SWIFTCOMPLETE_ACTIVATING', true);
     }
 
-    // Set up shutdown handler to catch fatal errors (parse errors, etc. that try-catch can't catch)
     register_shutdown_function(array(__CLASS__, 'shutdown_handler'));
 
     try {
-      // Check PHP version
       if (version_compare(PHP_VERSION, '7.4', '<')) {
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
@@ -46,7 +43,6 @@ class Activator
         );
       }
 
-      // Check WordPress version
       global $wp_version;
       if (version_compare($wp_version, '5.7.2', '<')) {
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
@@ -60,7 +56,6 @@ class Activator
         );
       }
 
-      // Check if WooCommerce is active
       if (!class_exists('WooCommerce')) {
         self::log_error('ACTIVATION_ERROR', 'WooCommerce is not active');
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
@@ -71,7 +66,6 @@ class Activator
         );
       }
 
-      // Check if required files exist (new architecture with namespaces)
       $required_files = array(
         SWIFTCOMPLETE_PLUGIN_DIR . 'includes/autoloader.php',
         SWIFTCOMPLETE_PLUGIN_DIR . 'includes/Core/Plugin.php',
@@ -98,7 +92,6 @@ class Activator
         }
       }
 
-      // Verify main plugin class is available
       if (!class_exists('\Swiftcomplete\Core\Plugin')) {
         $error_msg = __('Failed to load Swiftcomplete main plugin class. Plugin may be corrupted.', 'swiftcomplete');
         self::log_error('ACTIVATION_ERROR', $error_msg);
@@ -110,11 +103,8 @@ class Activator
         );
       }
 
-      // Set activation flag
       update_option('swiftcomplete_activated', time());
       update_option('swiftcomplete_version', SWIFTCOMPLETE_VERSION);
-
-      // Log successful activation
       self::log_error('ACTIVATION_SUCCESS', 'Plugin activated successfully');
 
     } catch (\Exception $e) {
@@ -150,15 +140,11 @@ class Activator
    */
   public static function deactivate()
   {
-    // Clean up activation flag
     delete_option('swiftcomplete_activated');
 
-    // Reset error count if ErrorHandler was tracking errors
     if (class_exists('\Swiftcomplete\Core\ErrorHandler')) {
       \Swiftcomplete\Core\ErrorHandler::reset_error_count();
     }
-
-    // Log deactivation
     self::log_error('DEACTIVATION', 'Plugin deactivated');
   }
 
@@ -187,7 +173,6 @@ class Activator
   public static function declare_wc_compatibility()
   {
     if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
-      // Declare HPOS (High-Performance Order Storage) compatibility
       \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
         'custom_order_tables',
         SWIFTCOMPLETE_PLUGIN_FILE,

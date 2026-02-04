@@ -22,7 +22,6 @@ const wc_checkout = {
       if (typeof checkoutStore.getBillingSameAsShipping === 'function') {
         return checkoutStore.getBillingSameAsShipping();
       }
-      // Fallback to state inspection
       const state = checkoutStore.getState();
       if (state?.useShippingAsBilling !== undefined) {
         return state.useShippingAsBilling;
@@ -310,7 +309,6 @@ const sc_fields = {
 
     const success = this.updateWhat3wordsField(addressType, value);
 
-    // Sync shipping to billing when checkbox is checked
     if (success && addressType === 'shipping' && syncToBilling && wc_checkout.isBillingSameAsShipping()) {
       this.setWhat3wordsValue('billing', value, false);
     }

@@ -33,8 +33,6 @@ class HookManager
     public function register_action(string $hook, callable $callback, int $priority = 10, int $accepted_args = 1): bool
     {
         $result = add_action($hook, $callback, $priority, $accepted_args);
-
-        // Track registered hooks for potential unregistration
         if ($result) {
             if (!isset($this->hooks[$hook])) {
                 $this->hooks[$hook] = array();
@@ -61,8 +59,6 @@ class HookManager
     public function register_filter(string $hook, callable $callback, int $priority = 10, int $accepted_args = 1): bool
     {
         $result = add_filter($hook, $callback, $priority, $accepted_args);
-
-        // Track registered filters
         if ($result) {
             if (!isset($this->hooks[$hook])) {
                 $this->hooks[$hook] = array();
@@ -109,8 +105,6 @@ class HookManager
     public function unregister(string $hook, callable $callback, int $priority = 10): bool
     {
         $result = remove_action($hook, $callback, $priority);
-
-        // Remove from tracking
         if ($result && isset($this->hooks[$hook])) {
             $this->hooks[$hook] = array_filter(
                 $this->hooks[$hook],

@@ -14,10 +14,8 @@
  * @package Swiftcomplete
  */
 
-// Prevent direct access
 defined('ABSPATH') || exit;
 
-// Define plugin constants
 if (!defined('SWIFTCOMPLETE_VERSION')) {
   define('SWIFTCOMPLETE_VERSION', '1.0.0');
 }
@@ -38,20 +36,15 @@ if (!defined('SWIFTCOMPLETE_PLUGIN_URL')) {
   if (function_exists('plugin_dir_url')) {
     define('SWIFTCOMPLETE_PLUGIN_URL', plugin_dir_url(__FILE__));
   } else {
-    // Fallback - should never happen in WordPress, but safety first
     if (function_exists('plugins_url') && function_exists('plugin_basename')) {
       $plugin_dir = dirname(plugin_basename(__FILE__));
       define('SWIFTCOMPLETE_PLUGIN_URL', plugins_url($plugin_dir . '/'));
     } else {
-      // Last resort fallback
       define('SWIFTCOMPLETE_PLUGIN_URL', '');
     }
   }
 }
 
-/**
- * Load PSR-4 autoloader
- */
 $autoloader_file = SWIFTCOMPLETE_PLUGIN_DIR . 'includes/autoloader.php';
 if (file_exists($autoloader_file)) {
   require_once $autoloader_file;
@@ -74,7 +67,6 @@ if (!function_exists('swiftcomplete_init')) {
     try {
       return \Swiftcomplete\Core\Plugin::get_instance();
     } catch (\Throwable $e) {
-      // Log error but don't crash WordPress
       if (function_exists('error_log')) {
         error_log('Swiftcomplete error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
       }
@@ -83,9 +75,7 @@ if (!function_exists('swiftcomplete_init')) {
   }
 }
 
-// Register activation and deactivation hooks
 if (function_exists('register_activation_hook')) {
-  // Load activator class
   $activator_file = SWIFTCOMPLETE_PLUGIN_DIR . 'includes/activator.php';
   if (file_exists($activator_file)) {
     require_once $activator_file;
@@ -95,8 +85,6 @@ if (function_exists('register_activation_hook')) {
   register_deactivation_hook(SWIFTCOMPLETE_PLUGIN_FILE, array('\Swiftcomplete\Activator', 'deactivate'));
 }
 
-// Initialize plugin only if WordPress is fully loaded
-// Priority 10 ensures WooCommerce has had a chance to load first
 if (function_exists('add_action')) {
   add_action('plugins_loaded', 'swiftcomplete_init', 10);
 

@@ -74,16 +74,12 @@ class OrderDisplayManager
      */
     private function register_hooks(): void
     {
-        // Only register if WooCommerce is active
         if (!class_exists('WooCommerce')) {
             return;
         }
 
-        // Display on order confirmation page
         $this->hook_manager->register_action('woocommerce_order_details_after_customer_details', array($this, 'display_on_order'), 10, 1);
         $this->hook_manager->register_action('woocommerce_thankyou', array($this, 'display_on_confirmation'), 10, 1);
-
-        // Add fields to order in admin
         $this->hook_manager->register_action('woocommerce_admin_shipping_fields', array($this, 'add_swiftcomplete_order_shipping'), 10, 2);
         $this->hook_manager->register_action('woocommerce_admin_billing_fields', array($this, 'add_swiftcomplete_order_billing'), 10, 2);
     }
@@ -192,10 +188,8 @@ class OrderDisplayManager
         } elseif (is_numeric($order)) {
             $order_id = absint($order);
         } elseif (isset($_GET['post'])) {
-            // Classic order edit screen: /wp-admin/post.php?post=XX&action=edit
             $order_id = absint($_GET['post']);
         } elseif (isset($_GET['id'])) {
-            // HPOS order edit screen: /wp-admin/admin.php?page=wc-orders&action=edit&id=XX
             $order_id = absint($_GET['id']);
         } elseif (isset($GLOBALS['post']) && $GLOBALS['post'] instanceof \WP_Post) {
             $order_id = (int) $GLOBALS['post']->ID;

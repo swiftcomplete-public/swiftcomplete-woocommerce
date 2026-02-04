@@ -50,13 +50,8 @@ class ErrorHandler
    */
   public static function init(): void
   {
-    // Register shutdown function to catch fatal errors
     register_shutdown_function(array(__CLASS__, 'handle_shutdown'));
-
-    // Register error handler for non-fatal errors
     set_error_handler(array(__CLASS__, 'handle_error'));
-
-    // Register exception handler
     set_exception_handler(array(__CLASS__, 'handle_exception'));
   }
 
@@ -73,7 +68,6 @@ class ErrorHandler
       return;
     }
 
-    // Only handle fatal errors
     $fatal_errors = array(
       E_ERROR,
       E_CORE_ERROR,
@@ -86,18 +80,13 @@ class ErrorHandler
       return;
     }
 
-    // Check if error is from our plugin
     if (!self::is_plugin_error($error['file'])) {
       return;
     }
 
-    // Log the error
     self::log_fatal_error($error);
-
-    // Increment error count
     self::increment_error_count();
 
-    // Check if we should deactivate
     if (self::should_deactivate()) {
       self::deactivate_plugin();
     }
@@ -114,15 +103,11 @@ class ErrorHandler
    */
   public static function handle_error(int $errno, string $errstr, string $errfile, int $errline): bool
   {
-    // Only handle errors from our plugin
     if (!self::is_plugin_error($errfile)) {
-      return false; // Let WordPress handle it
+      return false;
     }
 
-    // Log the error
     self::log_error($errno, $errstr, $errfile, $errline);
-
-    // Don't suppress the error, just log it
     return false;
   }
 
@@ -134,27 +119,20 @@ class ErrorHandler
    */
   public static function handle_exception(\Throwable $exception): void
   {
-    // Check if exception is from our plugin
     if (!self::is_plugin_error($exception->getFile())) {
-      // Let WordPress handle it
       if (function_exists('restore_exception_handler')) {
         restore_exception_handler();
       }
       throw $exception;
     }
 
-    // Log the exception
     self::log_exception($exception);
-
-    // Increment error count
     self::increment_error_count();
 
-    // Check if we should deactivate
     if (self::should_deactivate()) {
       self::deactivate_plugin();
     }
 
-    // Display user-friendly error message
     if (is_admin()) {
       add_action('admin_notices', function () use ($exception) {
         self::display_admin_notice($exception);
@@ -274,7 +252,6 @@ class ErrorHandler
     $last_error_time = get_option(self::LAST_ERROR_OPTION, 0);
     $error_count = get_option(self::ERROR_COUNT_OPTION, 0);
 
-    // Reset count if outside error window
     if (($current_time - $last_error_time) > self::ERROR_WINDOW) {
       $error_count = 0;
     }
@@ -313,14 +290,10 @@ class ErrorHandler
 
     deactivate_plugins(plugin_basename($plugin_file));
 
-    // Log deactivation
     self::write_log('[Swiftcomplete AUTO-DEACTIVATED] Too many fatal errors detected');
-
-    // Reset error count
     delete_option(self::ERROR_COUNT_OPTION);
     delete_option(self::LAST_ERROR_OPTION);
 
-    // Show admin notice
     if (is_admin()) {
       add_action('admin_notices', array(__CLASS__, 'display_deactivation_notice'));
     }

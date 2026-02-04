@@ -73,7 +73,6 @@ class Plugin
             $this->register_services();
             $this->init();
         } catch (\Throwable $e) {
-            // Error handler will log this, but we need to prevent fatal error
             if (function_exists('error_log')) {
                 error_log('Swiftcomplete: Failed to initialize plugin - ' . $e->getMessage());
             }
@@ -87,7 +86,6 @@ class Plugin
      */
     private function register_services(): void
     {
-        // Register core services as singletons
         $this->container->register_singleton('hook_manager', function () {
             return new HookManager();
         });
@@ -108,7 +106,6 @@ class Plugin
             return new CustomerMeta();
         });
 
-        // Register checkout strategies
         $this->container->register('shortcode_strategy', function ($container) {
             return new ShortcodeCheckout(
                 $container->get('order_meta'),
@@ -126,7 +123,6 @@ class Plugin
             );
         });
 
-        // Register checkout handler
         $this->container->register_singleton('checkout_handler', function ($container) {
             return new CheckoutHandler(
                 array(
@@ -138,7 +134,6 @@ class Plugin
             );
         });
 
-        // Register order display manager
         $this->container->register_singleton('order_display', function ($container) {
             return new OrderDisplayManager(
                 $container->get('order_meta'),
@@ -148,7 +143,6 @@ class Plugin
             );
         });
 
-        // Register asset enqueuer
         $this->container->register_singleton('asset_enqueuer', function ($container) {
             return new AssetEnqueuer(
                 $container->get('checkout_type_identifier'),
@@ -161,7 +155,6 @@ class Plugin
             );
         });
 
-        // Register settings manager
         $this->container->register_singleton('settings_manager', function ($container) {
             return new SettingsManager(
                 $container->get('hook_manager')
@@ -176,13 +169,10 @@ class Plugin
      */
     private function init(): void
     {
-        // Safety check: Only initialize if WooCommerce is active
         if (!class_exists('WooCommerce')) {
             add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
             return;
         }
-        // Initialize components by getting them from container
-        // This triggers their constructors and hook registration
         $this->container->get('checkout_handler');
         $this->container->get('order_display');
         $this->container->get('asset_enqueuer');
@@ -216,8 +206,6 @@ class Plugin
             }
             return;
         }
-
-        // Extract variables for partial
         if (!empty($args)) {
             extract($args);
         }

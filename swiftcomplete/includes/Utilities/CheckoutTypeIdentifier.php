@@ -21,8 +21,6 @@ class CheckoutTypeIdentifier
    */
   public function has_blocks(): bool
   {
-    // Check if WooCommerce Blocks is available
-    // Using string class name for better compatibility with older PHP versions
     return class_exists('\Automattic\WooCommerce\Blocks\Package');
   }
 
@@ -46,13 +44,9 @@ class CheckoutTypeIdentifier
     if (!$this->is_checkout() || !$this->has_blocks()) {
       return false;
     }
-
-    // Block theme (FSE) checkout
     if (function_exists('wp_is_block_theme') && wp_is_block_theme()) {
       return true;
     }
-
-    // Classic theme with block-based checkout page
     $post = get_post();
     return $post && has_block('woocommerce/checkout', $post);
   }
@@ -99,12 +93,9 @@ class CheckoutTypeIdentifier
    */
   public function is_order_received_page(): bool
   {
-    // Check if WooCommerce function exists
     if (function_exists('is_wc_endpoint_url')) {
       return is_wc_endpoint_url('order-received');
     }
-
-    // Fallback: check for order-received query parameter
     if ($this->is_checkout() && isset($_GET['order-received'])) {
       return !empty($_GET['order-received']);
     }

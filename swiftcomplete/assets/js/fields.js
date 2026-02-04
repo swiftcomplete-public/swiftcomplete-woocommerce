@@ -18,8 +18,6 @@ const sc_fields = {
       return null;
     }
 
-    // Try both underscore and hyphen formats for field ID
-    // Shortcode checkout typically uses underscores, but fieldId might come with hyphens
     const fieldIdUnderscore = fieldId.replace(/-/g, '_');
     const fieldIdHyphen = fieldId.replace(/_/g, '-');
 
@@ -36,7 +34,6 @@ const sc_fields = {
     return field;
   },
   findField(addressFields, addressType, fieldId) {
-    // Try both underscore and hyphen formats
     const fieldIdUnderscore = fieldId.replace(/-/g, '_');
     const fieldIdHyphen = fieldId.replace(/_/g, '-');
 

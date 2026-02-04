@@ -62,7 +62,6 @@ class CheckoutHandler
      */
     private function register_hooks(): void
     {
-        // Only register if WooCommerce is active
         if (!class_exists('WooCommerce')) {
             return;
         }
@@ -73,18 +72,14 @@ class CheckoutHandler
 
         $shortcode_checkout = $this->get_checkout('shortcode');
         if ($shortcode_checkout instanceof ShortcodeCheckout) {
-            // Register fields filter
             $this->hook_manager->register_filter('woocommerce_checkout_fields', array($shortcode_checkout, 'register_fields'), 10, 1);
             $this->hook_manager->register_filter('woocommerce_form_field', array($shortcode_checkout, 'remove_optional_fields_label'), 10, 4);
-            // Register filter to pre-fill customer values
             $this->hook_manager->register_filter('woocommerce_checkout_get_value', array($this, 'get_customer_checkout_value'), 10, 2);
-            // Register save action for shortcode checkout, this hook passes order ID and checkout data
             $this->hook_manager->register_action('woocommerce_checkout_update_order_meta', array($this, 'save_extension_data_to_order'), 5, 2);
         }
 
         $blocks_checkout = $this->get_checkout('blocks');
         if ($blocks_checkout instanceof BlocksCheckout) {
-            // Register extension data mapping filter
             $this->hook_manager->register_filter('woocommerce_store_api_checkout_update_order_from_request', array($this, 'save_blocks_extension_data_to_order'), 10, 2);
         }
     }

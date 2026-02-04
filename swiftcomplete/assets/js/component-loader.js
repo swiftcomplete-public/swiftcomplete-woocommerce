@@ -454,13 +454,10 @@ const sc_field_visibility = {
      * @param {boolean} hasCoverage - Whether country has coverage
      */
     updateAddressSearchField(addressType, countryCode, hasCoverage) {
-        // Try both field ID formats (hyphen for blocks, underscore for shortcode)
         let addressSearchField = sc_fields.getField(
             addressType,
             'swiftcomplete-address-search'
         );
-
-        // If not found with hyphen, try with underscore
         if (!addressSearchField) {
             addressSearchField = sc_fields.getField(
                 addressType,
@@ -472,7 +469,6 @@ const sc_field_visibility = {
             return;
         }
 
-        // Find container - blocks checkout uses .wc-block-components-text-input, shortcode uses .form-row
         const addressSearchContainer =
             addressSearchField.closest('.wc-block-components-text-input') ||
             addressSearchField.closest('.form-row') ||
@@ -481,16 +477,10 @@ const sc_field_visibility = {
             return;
         }
 
-        // Determine visibility:
-        // - Show if no country is selected (initial state)
-        // - Show if country is selected AND has coverage
-        // - Hide if country is selected but has NO coverage
         let shouldShow = true;
         if (countryCode) {
-            // Country is selected - only show if it has coverage
             shouldShow = hasCoverage === true;
         }
-        // If no country, show by default (shouldShow remains true)
         addressSearchContainer.style.display = shouldShow ? 'block' : 'none';
     },
 };
@@ -552,7 +542,6 @@ const sc_country = {
                     'swiftcomplete-what3words'
                 );
 
-                // Recreate control with new configuration
                 sc_control.recreate(
                     addressType,
                     settings,
@@ -561,7 +550,6 @@ const sc_country = {
                     newCountry
                 );
 
-                // Clear what3words field
                 if (what3wordsField?.field) {
                     what3wordsField.field.value = '';
                     if (typeof w3w_field !== 'undefined' && w3w_field.removeValue) {
@@ -569,7 +557,6 @@ const sc_country = {
                     }
                 }
 
-                // Update field visibility
                 sc_field_visibility.update(
                     addressType,
                     addressFields,
@@ -767,7 +754,6 @@ const sc_blocks_component_loader = {
             (typeof FIELD_DEFAULTS !== 'undefined' && FIELD_DEFAULTS.MAX_INJECTION_ATTEMPTS) || 20;
         const delay =
             (typeof FIELD_DEFAULTS !== 'undefined' && FIELD_DEFAULTS.INJECTION_RETRY_DELAY) || 200;
-        // Add a small buffer to ensure the final retry completes.
         return maxAttempts * delay + delay;
     },
 
@@ -799,7 +785,6 @@ const sc_blocks_component_loader = {
             this.pendingAddressTypes.add(addressType);
             initialiseSwiftcompleteBlocks(addressType, config);
 
-            // Allow re-attempts after the retry loop window elapses (covers async mounts).
             setTimeout(() => {
                 this.pendingAddressTypes.delete(addressType);
             }, this.getRetryWindowMs());
@@ -812,7 +797,6 @@ const sc_blocks_component_loader = {
         }
         this.started = true;
 
-        // Initial delayed check to handle async block mounting.
         this.scheduleCheck(config);
 
         const checkoutBlock = wc_fields_util.getCheckoutForm();
@@ -838,19 +822,15 @@ const sc_blocks_component_loader = {
             this.observer.observe(checkoutBlock, { childList: true, subtree: true });
         }
 
-        // Subscribe to the blocks checkout state so we can react immediately when
-        // billing becomes separate from shipping.
         try {
             if (typeof wc_checkout !== 'undefined' && typeof wc_checkout.subscribe === 'function') {
                 this.unsubscribeUseShippingAsBilling = wc_checkout.subscribe((currentValue) => {
                     if (currentValue === false) {
-                        // Billing form will mount; re-scan and initialize when ready.
                         this.scheduleCheck(config);
                         return;
                     }
 
                     if (currentValue === true) {
-                        // Billing form may unmount; clean up any existing billing control to avoid stale bindings.
                         setTimeout(() => {
                             const block = wc_fields_util.getCheckoutForm(true);
                             const billingForm = block?.querySelector(

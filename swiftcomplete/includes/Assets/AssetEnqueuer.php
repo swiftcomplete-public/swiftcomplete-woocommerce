@@ -107,7 +107,6 @@ class AssetEnqueuer
      */
     private function register_hooks(): void
     {
-        // Only register if WooCommerce is active
         if (!class_exists('WooCommerce')) {
             return;
         }
@@ -289,8 +288,6 @@ class AssetEnqueuer
     private function enqueue_checkout(array $deps = array(), bool $is_blocks = false): string
     {
         $handle = 'swiftcomplete-fields';
-
-        // Enqueue legacy fields script (shortcode checkout specific)
         wp_enqueue_script(
             $handle,
             $this->plugin_url . 'assets/js/' . ($is_blocks ? 'blocks/' : '') . 'fields.js',
@@ -306,7 +303,6 @@ class AssetEnqueuer
                 $this->get_blocks_checkout_field_config()
             );
         } else {
-            // Initialize field IDs for legacy fields
             self::invoke_function_inline_script(
                 $handle,
                 'if (typeof COMPONENT_DEFAULTS !== "undefined") { sc_fields.what3wordsFieldId = COMPONENT_DEFAULTS.WHAT3WORDS_FIELD_ID || null; sc_fields.addressSearchFieldId = COMPONENT_DEFAULTS.ADDRESS_SEARCH_FIELD_ID || null; }',

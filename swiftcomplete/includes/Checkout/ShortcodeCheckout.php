@@ -282,7 +282,6 @@ class ShortcodeCheckout implements CheckoutInterface
         $billing_key = 'billing_' . $field_ids['what3words'];
         $shipping_key = 'shipping_' . $field_ids['what3words'];
 
-        // Get values from POST
         $billing_value = isset($_POST[$billing_key])
             ? sanitize_text_field(wp_unslash($_POST[$billing_key]))
             : '';
@@ -290,15 +289,12 @@ class ShortcodeCheckout implements CheckoutInterface
             ? sanitize_text_field(wp_unslash($_POST[$shipping_key]))
             : '';
 
-        // Check if "Ship to different address" toggle is enabled
         $ship_to_different_address = isset($_POST['ship_to_different_address']) && $_POST['ship_to_different_address'];
 
         if (!$ship_to_different_address && $billing_value) {
-            // Shipping address is same as billing, so use billing value for shipping
             $shipping_value = $billing_value;
         }
 
-        // Save to order meta
         if ($billing_value) {
             $this->order_meta->save($order->get_id(), FieldConstants::get_billing_what3words_meta_key(), $billing_value);
         }

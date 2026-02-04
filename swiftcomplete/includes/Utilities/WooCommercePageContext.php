@@ -106,8 +106,6 @@ class WooCommercePageContext
     return absint($wp->query_vars['view-order'] ?? 0);
   }
 
-
-  // add function to check if the current page is the swiftcomplete 
   public function is_swiftcomplete_settings_page(): bool
   {
     if (!function_exists('is_admin') || !is_admin()) {

@@ -97,7 +97,6 @@ class SettingsManager
    */
   public function load_settings(array $input): array
   {
-    // Get existing settings to preserve values when checkboxes are unchecked
     $existing = get_option(self::SETTINGS_OPTION, array());
     if (!is_array($existing)) {
       $existing = array();
@@ -111,8 +110,6 @@ class SettingsManager
     $validated['shipping_placeholder'] = isset($input['shipping_placeholder']) ? sanitize_text_field(wp_unslash($input['shipping_placeholder'])) : '';
     $validated['bias_towards'] = isset($input['bias_towards']) ? sanitize_text_field(wp_unslash($input['bias_towards'])) : '';
     $validated['bias_towards_lat_lon'] = isset($input['bias_towards_lat_lon']) ? sanitize_text_field(wp_unslash($input['bias_towards_lat_lon'])) : '';
-    // Checkboxes: if key exists in input, it's checked (value is a string from form, not boolean)
-    // If key doesn't exist, checkbox was unchecked, so set to false
     $validated['w3w_enabled'] = isset($input['w3w_enabled']);
     $validated['state_counties_enabled'] = isset($input['state_counties_enabled']);
     $validated['hide_fields'] = isset($input['hide_fields']);
@@ -370,30 +367,18 @@ class SettingsManager
       $settings = array();
     }
 
-    // Get API key
     $api_key = isset($settings['api_key']) && strlen($settings['api_key']) > 0
       ? $settings['api_key']
       : '';
 
-    // Determine search for value (address or address,what3words)
     $w3w_enabled = !isset($settings['w3w_enabled']) || $settings['w3w_enabled'] === true;
     $search_for = $w3w_enabled ? 'address,what3words' : 'address';
-
-    // Get hide fields setting
     $hide_fields = isset($settings['hide_fields']) && $settings['hide_fields'] === true;
-
-    // Get bias towards lat/lon (prefer explicit lat/lon value if present)
     $bias_towards = isset($settings['bias_towards_lat_lon']) ? $settings['bias_towards_lat_lon'] : '';
-
-    // Get labels
     $billing_label = isset($settings['billing_label']) ? $settings['billing_label'] : '';
     $shipping_label = isset($settings['shipping_label']) ? $settings['shipping_label'] : '';
-
-    // Get placeholders
     $billing_placeholder = isset($settings['billing_placeholder']) ? $settings['billing_placeholder'] : '';
     $shipping_placeholder = isset($settings['shipping_placeholder']) ? $settings['shipping_placeholder'] : '';
-
-    // Get state/counties enabled
     $state_counties = isset($settings['state_counties_enabled']) && $settings['state_counties_enabled'] === true;
 
     return array(

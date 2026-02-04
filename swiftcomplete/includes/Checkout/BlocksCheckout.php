@@ -66,7 +66,6 @@ class BlocksCheckout implements CheckoutInterface
      */
     public function register_fields(array $fields): array
     {
-        // Blocks checkout handles fields via JavaScript, not PHP filters
         return $fields;
     }
 
