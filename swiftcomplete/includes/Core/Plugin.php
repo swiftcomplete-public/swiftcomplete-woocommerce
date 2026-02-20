@@ -1,0 +1,245 @@
+<?php
+/**
+ * Main Plugin Class
+ *
+ * @package Swiftcomplete
+ */
+
+namespace Swiftcomplete\Core;
+
+use Swiftcomplete\Assets\AssetEnqueuer;
+use Swiftcomplete\Checkout\CheckoutHandler;
+use Swiftcomplete\Checkout\BlocksCheckout;
+use Swiftcomplete\Checkout\ShortcodeCheckout;
+use Swiftcomplete\Customer\CustomerMeta;
+use Swiftcomplete\Order\OrderDisplayManager;
+use Swiftcomplete\Order\OrderMeta;
+use Swiftcomplete\Settings\SettingsManager;
+use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
+use Swiftcomplete\Utilities\WooCommercePageContext;
+use Swiftcomplete\Core\ServiceContainer;
+use Swiftcomplete\Core\HookManager;
+use Swiftcomplete\Core\ErrorHandler;
+
+defined('ABSPATH') || exit;
+
+/**
+ * Main plugin class using dependency injection
+ */
+class Plugin
+{
+    /**
+     * Plugin version
+     *
+     * @var string
+     */
+    const VERSION = '1.0.0';
+
+    /**
+     * Instance of this class
+     *
+     * @var Plugin
+     */
+    private static $instance = null;
+
+    /**
+     * Service container
+     *
+     * @var ServiceContainer
+     */
+    private $container;
+
+    /**
+     * Get instance of this class
+     *
+     * @return Plugin
+     */
+    public static function get_instance(): self
+    {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    /**
+     * Constructor
+     */
+    private function __construct()
+    {
+        ErrorHandler::init();
+        try {
+            $this->container = ServiceContainer::get_instance();
+            $this->register_services();
+            $this->init();
+        } catch (\Throwable $e) {
+            if (function_exists('error_log')) {
+                error_log('Swiftcomplete: Failed to initialize plugin - ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Register all services in the container
+     *
+     * @return void
+     */
+    private function register_services(): void
+    {
+        $this->container->register_singleton('hook_manager', function () {
+            return new HookManager();
+        });
+
+        $this->container->register_singleton('checkout_type_identifier', function () {
+            return new CheckoutTypeIdentifier();
+        });
+
+        $this->container->register_singleton('wc_page_context', function () {
+            return new WooCommercePageContext();
+        });
+
+        $this->container->register_singleton('order_meta', function () {
+            return new OrderMeta();
+        });
+
+        $this->container->register_singleton('customer_meta', function () {
+            return new CustomerMeta();
+        });
+
+        $this->container->register('shortcode_strategy', function ($container) {
+            return new ShortcodeCheckout(
+                $container->get('order_meta'),
+                $container->get('customer_meta'),
+                $container->get('checkout_type_identifier'),
+                $container->get('settings_manager')
+            );
+        });
+
+        $this->container->register('blocks_strategy', function ($container) {
+            return new BlocksCheckout(
+                $container->get('order_meta'),
+                $container->get('customer_meta'),
+                $container->get('checkout_type_identifier')
+            );
+        });
+
+        $this->container->register_singleton('checkout_handler', function ($container) {
+            return new CheckoutHandler(
+                array(
+                    $container->get('blocks_strategy'),
+                    $container->get('shortcode_strategy'),
+                ),
+                $container->get('hook_manager'),
+                $container->get('settings_manager'),
+            );
+        });
+
+        $this->container->register_singleton('order_display', function ($container) {
+            return new OrderDisplayManager(
+                $container->get('order_meta'),
+                $container->get('checkout_type_identifier'),
+                $container->get('hook_manager'),
+                $container->get('settings_manager')
+            );
+        });
+
+        $this->container->register_singleton('asset_enqueuer', function ($container) {
+            return new AssetEnqueuer(
+                $container->get('checkout_type_identifier'),
+                $container->get('wc_page_context'),
+                $container->get('hook_manager'),
+                $container->get('settings_manager'),
+                $container->get('customer_meta'),
+                self::VERSION,
+                SWIFTCOMPLETE_PLUGIN_URL
+            );
+        });
+
+        $this->container->register_singleton('settings_manager', function ($container) {
+            return new SettingsManager(
+                $container->get('hook_manager')
+            );
+        });
+    }
+
+    /**
+     * Initialize plugin
+     *
+     * @return void
+     */
+    private function init(): void
+    {
+        if (!class_exists('WooCommerce')) {
+            add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
+            return;
+        }
+        $this->container->get('checkout_handler');
+        $this->container->get('order_display');
+        $this->container->get('asset_enqueuer');
+        $this->container->get('settings_manager');
+    }
+
+    /**
+     * Display notice if WooCommerce is missing
+     *
+     * @return void
+     */
+    public function woocommerce_missing_notice(): void
+    {
+        self::load_partial('admin/woocommerce-missing-notice');
+    }
+
+    /**
+     * Load a partial
+     *
+     * @param string $partial Partial name (e.g., 'admin/settings-page').
+     * @param array  $args    Variables to pass to partial.
+     * @return void
+     */
+    public static function load_partial(string $partial, array $args = array()): void
+    {
+        $partial_path = SWIFTCOMPLETE_PLUGIN_DIR . 'partials/' . $partial . '.php';
+
+        if (!file_exists($partial_path)) {
+            if (function_exists('error_log')) {
+                error_log("Swiftcomplete partial not found: {$partial_path}");
+            }
+            return;
+        }
+        if (!empty($args)) {
+            extract($args);
+        }
+
+        include $partial_path;
+    }
+
+    /**
+     * Get plugin URL
+     *
+     * @return string
+     */
+    public static function get_plugin_url(): string
+    {
+        return SWIFTCOMPLETE_PLUGIN_URL;
+    }
+
+    /**
+     * Get plugin path
+     *
+     * @return string
+     */
+    public static function get_plugin_path(): string
+    {
+        return SWIFTCOMPLETE_PLUGIN_DIR;
+    }
+
+    /**
+     * Get service container
+     *
+     * @return ServiceContainer
+     */
+    public function get_container(): ServiceContainer
+    {
+        return $this->container;
+    }
+}

@@ -1,0 +1,84 @@
+services:
+  app:
+    platform: linux/amd64
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: development
+      args:
+        WOOCOMMERCE_VERSION: $WOOCOMMERCE_VERSION
+        WORDPRESS_VERSION: $WORDPRESS_VERSION
+        PHP_VERSION: $PHP_VERSION
+    container_name: swiftcomplete-wp
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:80']
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    environment:
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DEBUG: 1
+      WORDPRESS_DEBUG_LOG: 1
+      WORDPRESS_CONFIG_EXTRA: |
+        define('DISABLE_WP_CRON', 'true');
+    volumes:
+      - ./test/wordpress:/var/www/html
+      - ./swiftcomplete:/var/www/html/wp-content/plugins/swiftcomplete
+    ports:
+      - 8081:80
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  woocommerce:
+    platform: linux/amd64
+    build:
+      dockerfile: test/woocommerce/Dockerfile
+      context: .
+      target: setup-woocommerce
+      args:
+        PHP_VERSION: $PHP_VERSION
+    container_name: swiftcomplete-wp-setup
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./test/wordpress:/var/www/html:rw
+    environment:
+      WORDPRESS_LOCALE: en_GB
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_WEBSITE_TITLE: 'swiftcomplete'
+      WORDPRESS_WEBSITE_URL: 'http://localhost:8081'
+      WORDPRESS_WEBSITE_URL_WITHOUT_HTTP: 'localhost:8081'
+      WORDPRESS_WEBSITE_POST_URL_STRUCTURE: '/%year%/%monthnum%/%day%/%postname%/'
+      WORDPRESS_ADMIN_USER: 'admin'
+      WORDPRESS_ADMIN_PASSWORD: 'admin'
+      WORDPRESS_ADMIN_EMAIL: 'developer@what3words.com'
+      WORDPRESS_THEME: $WORDPRESS_THEME
+
+  mysql:
+    platform: linux/amd64
+    image: mysql:5.7
+    container_name: swiftcomplete-wpdb
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-pwordpress']
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    ports:
+      - 3337:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_DATABASE: wordpress
+    volumes:
+      - ./test/database/mysql:/var/lib/mysql

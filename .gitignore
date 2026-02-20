@@ -215,3 +215,7 @@ videos
 screenshots
 *.zip
 *.env
+
+test/wordpress*
+test/database/data*
+test/database/mysql*
