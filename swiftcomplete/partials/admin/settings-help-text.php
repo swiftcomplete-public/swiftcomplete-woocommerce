@@ -37,8 +37,9 @@ defined('ABSPATH') || exit;
             <!--- Logo --->
             <img src="https://www.swiftcomplete.com/images/swiftcomplete-what3words-logo.svg" alt="Swiftcomplete"
                 title="Swiftcomplete" width="175px" />
-            <h1>SwiftLookup Plugin</h1>
-            <p class="swiftcomplete-text-xm">Capture accurate billing and shipping addresses with SwiftLookup plugin for
+            <h1>Swiftcompletete Plugin</h1>
+            <p class="swiftcomplete-text-xm">Capture accurate billing and shipping addresses with Swiftcomplete plugin
+                for
                 WooCommerce.</p>
             <p class="swiftcomplete-text-xm">Before you can use the Swiftcomplete plugin, you will need to get an API
                 key.</p>
