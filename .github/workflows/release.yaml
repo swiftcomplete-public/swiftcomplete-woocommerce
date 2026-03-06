@@ -41,17 +41,29 @@ jobs:
           grep -E "Version: ${{ env.VERSION }}" swiftcomplete/swiftcomplete.php
           grep -E "SWIFTCOMPLETE_VERSION', '${{ env.VERSION }}'" swiftcomplete/swiftcomplete.php
           grep -E "Stable tag: ${{ env.VERSION }}" swiftcomplete/README.txt
-      - name: Commit and push version update
-        if: vars.RELEASE_PUSH_TO_DEFAULT_BRANCH == 'true'
+      # RELEASE_PUSH_VERSION_UPDATE=true: commit version bump and push to branch where tag was created (or default)
+      - name: Resolve branch to push to (current branch when tag was created, or default)
+        id: branch
+        if: vars.RELEASE_PUSH_VERSION_UPDATE == 'true'
         env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/branches-where-head" \
+            | jq -r '.[0].name // empty')
+          echo "branch=${BRANCH:-${{ github.event.repository.default_branch }}}" >> $GITHUB_OUTPUT
+          echo "Will push to: ${BRANCH:-${{ github.event.repository.default_branch }}}"
+      - name: Commit and push version update
+        if: vars.RELEASE_PUSH_VERSION_UPDATE == 'true'
+        env:
+          TARGET_BRANCH: ${{ steps.branch.outputs.branch }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add swiftcomplete/swiftcomplete.php swiftcomplete/README.txt
           git diff --staged --quiet && echo "No version changes to commit" || {
             git commit -m "chore: set version to ${{ env.VERSION }} [skip ci]"
-            git push origin HEAD:"${DEFAULT_BRANCH}"
+            git push origin HEAD:"${TARGET_BRANCH}"
           }
     outputs:
       version: ${{ steps.version.outputs.version }}
