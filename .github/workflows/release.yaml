@@ -6,7 +6,8 @@ name: Release Swiftcomplete
 on:
   push:
     tags:
-      - '[0-9]+\.[0-9]+\.[0-9]+'
+      # Semver: 2.0.0 or 2.0.0-alpha.0, 2.0.0-beta.1, etc.
+      - '[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?'
 jobs:
   set-version:
     name: Set version from tag
