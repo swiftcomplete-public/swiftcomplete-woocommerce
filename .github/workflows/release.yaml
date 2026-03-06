@@ -1,39 +1,15 @@
-# Version and release Swiftcomplete plugin from git tags (e.g. v2.0.1).
-# Usage: bump version in plugin files, commit, push, then create tag:
-#   git tag v2.0.1 && git push origin v2.0.1
 name: Release Swiftcomplete
 
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
+
 jobs:
   set-version:
-    name: Set version from tag
+    name: Placeholder
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set version from tag
+      - name: Placeholder
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Version: $VERSION"
-      - name: Update version in plugin and readme
-        run: |
-          VERSION="${{ env.VERSION }}"
-          PLUGIN="swiftcomplete/swiftcomplete.php"
-          README="swiftcomplete/README.txt"
-          sed -i "s/^\s*\* Version:.*/\* Version: $VERSION/" "$PLUGIN"
-          sed -i "s/define('SWIFTCOMPLETE_VERSION', '[^']*');/define('SWIFTCOMPLETE_VERSION', '$VERSION');/" "$PLUGIN"
-          sed -i "s/^Stable tag: .*/Stable tag: $VERSION/" "$README"
-          echo "Updated $PLUGIN and $README to $VERSION"
-      - name: Verify version
-        run: |
-          grep -E "Version: ${{ env.VERSION }}" swiftcomplete/swiftcomplete.php
-          grep -E "SWIFTCOMPLETE_VERSION', '${{ env.VERSION }}'" swiftcomplete/swiftcomplete.php
-          grep -E "Stable tag: ${{ env.VERSION }}" swiftcomplete/README.txt
-    outputs:
-      version: ${{ env.VERSION }}
-
-  # Add further jobs here (e.g. publish to WordPress.org SVN, create GitHub Release)
-  # and use: needs: set-version, env: VERSION: ${{ needs.set-version.outputs.version }}
+          echo "Placeholder"
