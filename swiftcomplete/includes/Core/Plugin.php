@@ -74,6 +74,7 @@ class Plugin
             $this->init();
         } catch (\Throwable $e) {
             if (function_exists('error_log')) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for initialization failures.
                 error_log('Swiftcomplete: Failed to initialize plugin - ' . $e->getMessage());
             }
         }
@@ -202,6 +203,7 @@ class Plugin
 
         if (!file_exists($partial_path)) {
             if (function_exists('error_log')) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for missing partials.
                 error_log("Swiftcomplete partial not found: {$partial_path}");
             }
             return;

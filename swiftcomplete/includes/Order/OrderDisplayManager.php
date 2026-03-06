@@ -187,12 +187,13 @@ class OrderDisplayManager
             $order_id = (int) $order->get_id();
         } elseif (is_numeric($order)) {
             $order_id = absint($order);
-        } elseif (isset($_GET['post'])) {
-            $order_id = absint($_GET['post']);
-        } elseif (isset($_GET['id'])) {
-            $order_id = absint($_GET['id']);
-        } elseif (isset($GLOBALS['post']) && $GLOBALS['post'] instanceof \WP_Post) {
-            $order_id = (int) $GLOBALS['post']->ID;
+        } else {
+            // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for order ID in admin context.
+            $order_id = isset($_GET['post']) ? absint($_GET['post']) : (isset($_GET['id']) ? absint($_GET['id']) : 0);
+            if ($order_id === 0 && isset($GLOBALS['post']) && $GLOBALS['post'] instanceof \WP_Post) {
+                $order_id = (int) $GLOBALS['post']->ID;
+            }
+            // phpcs:enable WordPress.Security.NonceVerification.Recommended
         }
 
         return $order_id;
@@ -213,7 +214,7 @@ class OrderDisplayManager
 
         $label = $this->settings_manager->get_setting("{$field_id}_label", 'Address Finder');
         $search_field = array(
-            'label' => __($label, 'swiftcomplete'),
+            'label' => esc_html($label),
             'class' => 'short',
             'show' => false,
             'type' => 'text',

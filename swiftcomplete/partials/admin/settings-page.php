@@ -12,5 +12,5 @@ defined('ABSPATH') || exit;
     settings_fields('swiftcomplete_settings');
     do_settings_sections('swiftcomplete');
     ?>
-    <input name="submit" class="button button-primary" type="submit" value="<?php esc_attr_e('Save'); ?>" />
+    <input name="submit" class="button button-primary" type="submit" value="<?php esc_attr_e('Save', 'swiftcomplete'); ?>" />
 </form>

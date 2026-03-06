@@ -30,9 +30,11 @@ class WooCommercePageContext
       return false;
     }
 
+    // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for admin page context detection.
     $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
     $action = isset($_GET['action']) ? sanitize_text_field(wp_unslash($_GET['action'])) : '';
     $id = isset($_GET['id']) ? absint($_GET['id']) : 0;
+    // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
     return $page === 'wc-orders' && $action === 'edit' && $id > 0;
   }
@@ -117,7 +119,9 @@ class WooCommercePageContext
       return false;
     }
 
+    // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for admin page context detection.
     $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+    // phpcs:enable WordPress.Security.NonceVerification.Recommended
     return $page === 'swiftcomplete';
   }
 }

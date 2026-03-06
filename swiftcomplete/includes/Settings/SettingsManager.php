@@ -146,7 +146,7 @@ class SettingsManager
   public function add_plugin_settings_link(array $actions): array
   {
     $mylinks = array(
-      '<a href="' . admin_url('options-general.php?page=' . self::SETTINGS_PAGE) . '">' . __('Settings') . '</a>'
+      '<a href="' . admin_url('options-general.php?page=' . self::SETTINGS_PAGE) . '">' . __('Settings', 'swiftcomplete') . '</a>'
     );
     return array_merge($mylinks, $actions);
   }

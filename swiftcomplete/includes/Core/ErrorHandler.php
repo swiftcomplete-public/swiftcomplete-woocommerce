@@ -51,6 +51,7 @@ class ErrorHandler
   public static function init(): void
   {
     register_shutdown_function(array(__CLASS__, 'handle_shutdown'));
+    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Intentional error handler for plugin error reporting.
     set_error_handler(array(__CLASS__, 'handle_error'));
     set_exception_handler(array(__CLASS__, 'handle_exception'));
   }
@@ -238,6 +239,7 @@ class ErrorHandler
       get_bloginfo('version')
     );
 
+    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for plugin error reporting.
     error_log($log_message);
   }
 
@@ -312,6 +314,7 @@ class ErrorHandler
     }
 
     $message = sprintf(
+      /* translators: %s: The exception error message. */
       __('Swiftcomplete encountered an error: %s. Please check the error log for details.', 'swiftcomplete'),
       esc_html($exception->getMessage())
     );

@@ -1,10 +1,10 @@
 === Swiftcomplete for WooCommerce ===
 Contributors: Swiftcomplete
-Tags: Swiftcomplete, address validator, what3words address, searchbox, search, address, validation, autosuggest, w3w, capture, address lookup, autocomplete, verification, address collection, address finder, cleansing, address standardising
-Requires at least: 4.7
-Tested up to: 6.4
-Stable tag: 2.0.0-alpha.0
-Requires PHP: 7.0
+Tags: Swiftcomplete, address validator, what3words, WooCommerce, autocomplete
+Requires at least: 5.0
+Tested up to: 6.9
+Stable tag: 2.0.0
+Requires PHP: 7.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

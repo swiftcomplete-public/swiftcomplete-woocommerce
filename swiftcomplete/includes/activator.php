@@ -9,10 +9,6 @@ namespace Swiftcomplete;
 
 defined('ABSPATH') || exit;
 
-if (!defined('SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE')) {
-  define('SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE', 'Plugin Activation Error');
-}
-
 /**
  * Swiftcomplete Activator class
  */
@@ -35,10 +31,11 @@ class Activator
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
           sprintf(
+            /* translators: %s: The current PHP version number. */
             __('Swiftcomplete for WooCommerce requires PHP 7.4 or higher. You are running PHP %s. Please upgrade PHP and try again.', 'swiftcomplete'),
             PHP_VERSION
           ),
-          __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
+          __('Plugin Activation Error', 'swiftcomplete'),
           array('back_link' => true)
         );
       }
@@ -48,10 +45,11 @@ class Activator
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
           sprintf(
+            /* translators: %s: The current WordPress version number. */
             __('Swiftcomplete for WooCommerce requires WordPress 5.7.2 or higher. You are running WordPress %s. Please upgrade WordPress and try again.', 'swiftcomplete'),
             $wp_version
           ),
-          __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
+          __('Plugin Activation Error', 'swiftcomplete'),
           array('back_link' => true)
         );
       }
@@ -61,7 +59,7 @@ class Activator
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
           __('Swiftcomplete for WooCommerce requires WooCommerce to be installed and active. Please install and activate WooCommerce first.', 'swiftcomplete'),
-          __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
+          __('Plugin Activation Error', 'swiftcomplete'),
           array('back_link' => true)
         );
       }
@@ -79,6 +77,7 @@ class Activator
       foreach ($required_files as $file) {
         if (!file_exists($file)) {
           $error_msg = sprintf(
+            /* translators: %s: The name of the missing file. */
             __('Required plugin file is missing: %s. Please reinstall the plugin.', 'swiftcomplete'),
             basename($file)
           );
@@ -86,7 +85,7 @@ class Activator
           deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
           self::safe_wp_die(
             $error_msg,
-            __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
+            __('Plugin Activation Error', 'swiftcomplete'),
             array('back_link' => true)
           );
         }
@@ -98,7 +97,7 @@ class Activator
         deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
         self::safe_wp_die(
           $error_msg,
-          __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
+          __('Plugin Activation Error', 'swiftcomplete'),
           array('back_link' => true)
         );
       }
@@ -109,6 +108,7 @@ class Activator
 
     } catch (\Exception $e) {
       $error_msg = sprintf(
+        /* translators: %s: The exception error message. */
         __('Plugin activation failed: %s', 'swiftcomplete'),
         $e->getMessage()
       );
@@ -116,11 +116,12 @@ class Activator
       deactivate_plugins(plugin_basename(SWIFTCOMPLETE_PLUGIN_FILE));
       self::safe_wp_die(
         $error_msg,
-        __(SWIFTCOMPLETE_ACTIVATION_ERROR_TITLE, 'swiftcomplete'),
+        __('Plugin Activation Error', 'swiftcomplete'),
         array('back_link' => true)
       );
     } catch (\Error $e) {
       $error_msg = sprintf(
+        /* translators: %s: The fatal error message. */
         __('Plugin activation fatal error: %s', 'swiftcomplete'),
         $e->getMessage()
       );
@@ -190,7 +191,7 @@ class Activator
    */
   private static function safe_wp_die($message, $title, $args = array())
   {
-    wp_die($message, $title, $args);
+    wp_die(wp_kses_post($message), esc_html($title), $args); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $args is a config array for wp_die(), not direct output.
   }
 
   /**
@@ -210,6 +211,7 @@ class Activator
         PHP_VERSION,
         get_bloginfo('version')
       );
+      // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional activation/deactivation logging.
       error_log($log_message);
     }
   }

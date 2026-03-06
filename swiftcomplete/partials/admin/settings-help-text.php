@@ -35,7 +35,7 @@ defined('ABSPATH') || exit;
     <div style="display: grid; column-gap: 50px; max-width: 1200px;">
         <div style="grid-column-start: 1; grid-column-end: 3;">
             <!--- Logo --->
-            <img src="https://www.swiftcomplete.com/images/swiftcomplete-what3words-logo.svg" alt="Swiftcomplete"
+            <img src="<?php echo esc_url(plugins_url('assets/images/swiftcomplete-what3words-logo.svg', SWIFTCOMPLETE_PLUGIN_FILE)); ?>" alt="Swiftcomplete"
                 title="Swiftcomplete" width="175px" />
             <h1>Swiftcompletete Plugin</h1>
             <p class="swiftcomplete-text-xm">Capture accurate billing and shipping addresses with Swiftcomplete plugin

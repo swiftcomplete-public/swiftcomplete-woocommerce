@@ -85,7 +85,7 @@ class ServiceContainer
     public function get(string $id): object
     {
         if (!$this->has($id)) {
-            throw new RuntimeException("Service '{$id}' is not registered");
+            throw new RuntimeException("Service '" . esc_html($id) . "' is not registered");
         }
 
         $factory = $this->services[$id];

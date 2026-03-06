@@ -370,6 +370,7 @@ class AssetEnqueuer
     private static function invoke_function_inline_script(string $handle, string $fn, array $args = array(), string $position = 'after'): void
     {
         if (!wp_script_is($handle, 'enqueued')) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for script enqueue issues.
             error_log('Script not enqueued: ' . $handle);
             return;
         }
