@@ -6,20 +6,27 @@ name: Release Swiftcomplete
 on:
   push:
     tags:
-      # Semver-style tags: 2.0.0, 2.0.0-alpha.0, v1.2.3, etc. (glob: *.*.*)
-      - '[0-9]*.[0-9]*.[0-9]*' # 2.0.0, 12.0.0
+      # No v prefix: 2.0.0, 2.0.0-alpha.0, etc.
+      - '[0-9]*.[0-9]*.[0-9]*'
       - '[0-9]*.[0-9]*.[0-9]*-*'
 jobs:
   set-version:
     name: Set version from tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set version from tag
+        id: version
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
+          # GITHUB_REF_NAME is the tag name (e.g. v2.0.0 or 2.0.0)
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Version: $VERSION"
+          echo "Tag: $GITHUB_REF_NAME -> Version: $VERSION"
       - name: Update version in plugin and readme
         run: |
           VERSION="${{ env.VERSION }}"
@@ -34,8 +41,20 @@ jobs:
           grep -E "Version: ${{ env.VERSION }}" swiftcomplete/swiftcomplete.php
           grep -E "SWIFTCOMPLETE_VERSION', '${{ env.VERSION }}'" swiftcomplete/swiftcomplete.php
           grep -E "Stable tag: ${{ env.VERSION }}" swiftcomplete/README.txt
+      - name: Commit and push version update
+        if: vars.RELEASE_PUSH_TO_DEFAULT_BRANCH == 'true'
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add swiftcomplete/swiftcomplete.php swiftcomplete/README.txt
+          git diff --staged --quiet && echo "No version changes to commit" || {
+            git commit -m "chore: set version to ${{ env.VERSION }} [skip ci]"
+            git push origin HEAD:"${DEFAULT_BRANCH}"
+          }
     outputs:
-      version: ${{ env.VERSION }}
+      version: ${{ steps.version.outputs.version }}
 
   # Add further jobs here (e.g. publish to WordPress.org SVN, create GitHub Release)
   # and use: needs: set-version, env: VERSION: ${{ needs.set-version.outputs.version }}
