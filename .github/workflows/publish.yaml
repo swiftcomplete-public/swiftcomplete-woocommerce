@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: [Release Swiftcomplete]
     types: [completed]
-    branches: ['**']
 jobs:
   publish:
     name: Publish to SVN
