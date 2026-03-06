@@ -31,7 +31,7 @@ You can install Swiftcomplete plugin through the WordPress plugins page in your 
 
 = Manual Installation =
 
-You can download the Swiftcomplete plugin from the [WordPress Plugins site](https://wordpress.org/plugins/swiftlookup/#installation).
+You can download the Swiftcomplete plugin from the [WordPress Plugins site](https://wordpress.org/plugins/swiftcomplete/#installation).
 
 1. Download the Swiftcomplete plugin from the WordPress Plugins site
 2. Once you have downloaded the zipped plugin, you can upload it to your WordPress installation by navigating to _Plugins > Add New_, click the _Upload Plugin_ button

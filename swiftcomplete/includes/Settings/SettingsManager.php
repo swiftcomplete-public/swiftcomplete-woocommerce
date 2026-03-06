@@ -214,7 +214,7 @@ class SettingsManager
   public function render_w3w_enabled_field(): void
   {
     $settings = get_option(self::SETTINGS_OPTION);
-    $w3w_enabled = $settings === false || (!\array_key_exists('w3w_enabled', $settings) || (\array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] === true));
+    $w3w_enabled = $settings !== false && \array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] === true;
 
     if ($w3w_enabled === true) {
       echo "<input id='swiftcomplete_w3w_enabled' name='swiftcomplete_settings[w3w_enabled]' type='checkbox' checked />";
@@ -371,7 +371,7 @@ class SettingsManager
       ? $settings['api_key']
       : '';
 
-    $w3w_enabled = !isset($settings['w3w_enabled']) || $settings['w3w_enabled'] === true;
+    $w3w_enabled = isset($settings['w3w_enabled']) && $settings['w3w_enabled'] === true;
     $search_for = $w3w_enabled ? 'address,what3words' : 'address';
     $hide_fields = isset($settings['hide_fields']) && $settings['hide_fields'] === true;
     $bias_towards = isset($settings['bias_towards_lat_lon']) ? $settings['bias_towards_lat_lon'] : '';

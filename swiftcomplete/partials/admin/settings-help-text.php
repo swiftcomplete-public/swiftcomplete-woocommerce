@@ -35,9 +35,9 @@ defined('ABSPATH') || exit;
     <div style="display: grid; column-gap: 50px; max-width: 1200px;">
         <div style="grid-column-start: 1; grid-column-end: 3;">
             <!--- Logo --->
-            <img src="<?php echo esc_url(plugins_url('assets/images/swiftcomplete-what3words-logo.svg', SWIFTCOMPLETE_PLUGIN_FILE)); ?>" alt="Swiftcomplete"
-                title="Swiftcomplete" width="175px" />
-            <h1>Swiftcompletete Plugin</h1>
+            <img src="<?php echo esc_url(plugins_url('assets/images/swiftcomplete-what3words-logo.svg', SWIFTCOMPLETE_PLUGIN_FILE)); ?>"
+                alt="Swiftcomplete" title="Swiftcomplete" width="175px" />
+            <h1>Swiftcomplete Plugin</h1>
             <p class="swiftcomplete-text-xm">Capture accurate billing and shipping addresses with Swiftcomplete plugin
                 for
                 WooCommerce.</p>
@@ -53,7 +53,7 @@ defined('ABSPATH') || exit;
         </div>
         <div style="grid-column-start: 3; grid-column-end: 4;">
             <img alt="Swiftcomplete"
-                src="https://corpassets.what3words.com/wp-content/uploads/2022/08/Swiftcomplete-1100-x-825-px.jpg"
+                src="<?php echo esc_url(plugins_url('assets/images/swiftcomplete-1100-x-825-px.jpg', SWIFTCOMPLETE_PLUGIN_FILE)); ?>"
                 width="400" />
         </div>
     </div>
