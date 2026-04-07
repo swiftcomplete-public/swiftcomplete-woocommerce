@@ -115,7 +115,7 @@ class WooCommercePageContext
     }
 
     global $pagenow;
-    if (!isset($pagenow) || $pagenow !== 'options-general.php') {
+    if (!isset($pagenow) || $pagenow !== 'admin.php') {
       return false;
     }
 

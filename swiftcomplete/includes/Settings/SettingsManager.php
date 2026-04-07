@@ -134,7 +134,15 @@ class SettingsManager
    */
   public function add_settings_menu(): void
   {
-    add_submenu_page('options-general.php', 'Swiftcomplete', 'Swiftcomplete', 'manage_options', self::SETTINGS_PAGE, array($this, 'render_settings_page'));
+    add_menu_page(
+      __('Swiftcomplete', 'swiftcomplete'),
+      __('Swiftcomplete', 'swiftcomplete'),
+      'manage_options',
+      self::SETTINGS_PAGE,
+      array($this, 'render_settings_page'),
+      'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGlkPSJhcnR3b3JrIiB2aWV3Qm94PSIwIDAgMjAgMjAiPgogIDxwYXRoIGZpbGw9IiNhN2FhYWQiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTMuMDI3NCwxLjkyNzRoMTMuOTQ1MmMwLjYwNzUsMCwxLjEsMC40OTI1LDEuMSwxLjF2MTMuOTQ1MmMwLDAuNjA3NS0wLjQ5MjUsMS4xLTEuMSwxLjFIMy4wMjc0Yy0wLjYwNzUsMC0xLjEtMC40OTI1LTEuMS0xLjFWMy4wMjc0YzAtMC42MDc1LDAuNDkyNS0xLjEsMS4xLTEuMVpNMTIuMTI0Niw4LjQ5OGwxLjQ4MjQtNC42NTQ3aC0wLjUzNzljLTAuNjM5NSwwLTEuMjQ5NSwwLjI3MDUtMS42NzgyLDAuNzQ0N2wtNS45MjU0LDYuNTQ1Yy0wLjE3NzIsMC4xOTg1LTAuMDM1OCwwLjUxMzQsMC4yMywwLjUxMjRsMi4yODA2LTAuMDUzNC0xLjUxNTYsNC41MTczaDAuNjkxM2MwLjY2OTQsMCwxLjMwNjktMC4yODY3LDEuNzUwNi0wLjc4ODJsNS42MzUtNi4zNjM1YzAuMTczNi0wLjE5ODgwLjAzMTktMC41MDk3LTAuMjMyLTAuNTA5NGwtMi4xODEwLjAwMjNaTTguNDkwNywxMy44Mjk3bDEuMTk1NC0zLjMyOTYtMS45NDk0MC4wMDQ2LDMuNjk1LTQuMjA3Ny0xLjMwMDIsMy4zMzgyLDIuMDIwNC0wLjAwMjMtMy42NjA4LDQuMTk2NFoiPjwvcGF0aD4KPC9zdmc+Cg==',
+      58
+    );
   }
 
   /**
@@ -146,7 +154,7 @@ class SettingsManager
   public function add_plugin_settings_link(array $actions): array
   {
     $mylinks = array(
-      '<a href="' . admin_url('options-general.php?page=' . self::SETTINGS_PAGE) . '">' . __('Settings', 'swiftcomplete') . '</a>'
+      '<a href="' . esc_url(admin_url('admin.php?page=' . self::SETTINGS_PAGE)) . '">' . esc_html__('Settings', 'swiftcomplete') . '</a>'
     );
     return array_merge($mylinks, $actions);
   }
