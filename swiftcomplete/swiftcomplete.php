@@ -37,13 +37,10 @@ if (!defined('SWIFTCOMPLETE_PLUGIN_DIR')) {
 if (!defined('SWIFTCOMPLETE_PLUGIN_URL')) {
   if (function_exists('plugin_dir_url')) {
     define('SWIFTCOMPLETE_PLUGIN_URL', plugin_dir_url(__FILE__));
+  } elseif (function_exists('plugins_url')) {
+    define('SWIFTCOMPLETE_PLUGIN_URL', plugins_url('/', __FILE__));
   } else {
-    if (function_exists('plugins_url') && function_exists('plugin_basename')) {
-      $swiftcomplete_plugin_dir = dirname(plugin_basename(__FILE__));
-      define('SWIFTCOMPLETE_PLUGIN_URL', plugins_url($swiftcomplete_plugin_dir . '/'));
-    } else {
-      define('SWIFTCOMPLETE_PLUGIN_URL', '');
-    }
+    define('SWIFTCOMPLETE_PLUGIN_URL', '');
   }
 }
 
