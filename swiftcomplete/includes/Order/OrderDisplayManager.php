@@ -181,22 +181,84 @@ class OrderDisplayManager
      */
     private function resolve_order_id($order): int
     {
-        $order_id = 0;
-
         if ($order instanceof \WC_Order) {
             $order_id = (int) $order->get_id();
-        } elseif (is_numeric($order)) {
+            return $this->current_user_may_edit_order($order_id) ? $order_id : 0;
+        }
+
+        if (is_numeric($order)) {
             $order_id = absint($order);
-        } else {
-            // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL params for order ID in admin context.
-            $order_id = isset($_GET['post']) ? absint($_GET['post']) : (isset($_GET['id']) ? absint($_GET['id']) : 0);
-            if ($order_id === 0 && isset($GLOBALS['post']) && $GLOBALS['post'] instanceof \WP_Post) {
-                $order_id = (int) $GLOBALS['post']->ID;
+            return $this->current_user_may_edit_order($order_id) ? $order_id : 0;
+        }
+
+        $order_id = 0;
+
+        if (is_admin()) {
+            // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Validated with current_user_can and optional wp_verify_nonce below.
+            if (isset($_GET['post'])) {
+                $order_id = absint(wp_unslash($_GET['post']));
+            } elseif (isset($_GET['id'])) {
+                $order_id = absint(wp_unslash($_GET['id']));
             }
             // phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+            if (
+                $order_id > 0
+                && (!$this->current_user_may_edit_order($order_id)
+                    || !$this->request_nonce_valid_for_order($order_id))
+            ) {
+                $order_id = 0;
+            }
+        }
+
+        if ($order_id === 0 && isset($GLOBALS['post']) && $GLOBALS['post'] instanceof \WP_Post) {
+            $maybe_id = (int) $GLOBALS['post']->ID;
+            if ($maybe_id > 0 && $this->current_user_may_edit_order($maybe_id)) {
+                $order_id = $maybe_id;
+            }
         }
 
         return $order_id;
+    }
+
+    /**
+     * Whether the current user may edit this order in admin (authorization).
+     *
+     * @param int $order_id Order ID.
+     * @return bool
+     */
+    private function current_user_may_edit_order(int $order_id): bool
+    {
+        if ($order_id <= 0) {
+            return false;
+        }
+
+        if (function_exists('wc_get_order')) {
+            $wc_order = wc_get_order($order_id);
+            if ($wc_order instanceof \WC_Order) {
+                return current_user_can('edit_shop_order', $order_id);
+            }
+        }
+
+        return current_user_can('edit_post', $order_id);
+    }
+
+    /**
+     * When a nonce is present, it must verify for this order (classic or HPOS).
+     *
+     * @param int $order_id Order ID.
+     * @return bool
+     */
+    private function request_nonce_valid_for_order(int $order_id): bool
+    {
+        if (!isset($_REQUEST['_wpnonce'])) {
+            return true;
+        }
+
+        $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
+
+        return wp_verify_nonce($nonce, 'update-post_' . $order_id)
+            || wp_verify_nonce($nonce, 'wc_order_' . $order_id);
     }
 
     private function add_field_to_address(string $field_id, array $fields, int $order_id, bool $show_w3w = true): array
