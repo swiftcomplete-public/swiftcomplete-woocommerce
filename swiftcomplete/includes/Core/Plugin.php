@@ -29,13 +29,6 @@ defined('ABSPATH') || exit;
 class Plugin
 {
     /**
-     * Plugin version
-     *
-     * @var string
-     */
-    const VERSION = '1.0.0';
-
-    /**
      * Instance of this class
      *
      * @var Plugin
@@ -151,7 +144,7 @@ class Plugin
                 $container->get('hook_manager'),
                 $container->get('settings_manager'),
                 $container->get('customer_meta'),
-                self::VERSION,
+                SWIFTCOMPLETE_VERSION,
                 SWIFTCOMPLETE_PLUGIN_URL
             );
         });
