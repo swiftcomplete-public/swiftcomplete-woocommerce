@@ -111,6 +111,9 @@ class AssetEnqueuer
             return;
         }
 
+        // Settings UI must load before an API key exists; keep outside is_enabled() guard.
+        $this->hook_manager->register_action('admin_enqueue_scripts', array($this, 'enqueue_admin_settings_screen_styles'), 10, 1);
+
         if (!$this->settings_manager->is_enabled()) {
             return;
         }
@@ -120,6 +123,31 @@ class AssetEnqueuer
         $this->hook_manager->register_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'), 10, 0);
 
         $this->hook_manager->register_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'), 10, 0);
+    }
+
+    /**
+     * Enqueue styles for the plugin settings screen only (admin).
+     *
+     * @param string $hook_suffix Current admin page hook.
+     * @return void
+     */
+    public function enqueue_admin_settings_screen_styles(string $hook_suffix): void
+    {
+        $slug = SettingsManager::SETTINGS_PAGE;
+        $allowed = array(
+            'toplevel_page_' . $slug,
+            'settings_page_' . $slug,
+        );
+        if (!in_array($hook_suffix, $allowed, true)) {
+            return;
+        }
+
+        wp_enqueue_style(
+            'swiftcomplete-admin-settings-help',
+            $this->plugin_url . 'assets/css/admin-settings-help.css',
+            array(),
+            $this->version
+        );
     }
 
     public function enqueue_blocks_scripts(): void
@@ -374,7 +402,17 @@ class AssetEnqueuer
             error_log('Script not enqueued: ' . $handle);
             return;
         }
-        $script = sprintf($fn, wp_json_encode($args));
+
+        if (strpos($fn, '%s') !== false) {
+            $json = wp_json_encode(
+                $args,
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+            );
+            $script = sprintf($fn, $json);
+        } else {
+            $script = $fn;
+        }
+
         wp_add_inline_script($handle, $script, $position);
     }
 }

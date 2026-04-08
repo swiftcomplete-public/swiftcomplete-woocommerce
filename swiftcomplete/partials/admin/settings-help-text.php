@@ -7,31 +7,7 @@
 
 defined('ABSPATH') || exit;
 ?>
-<style>
-    .swiftcomplete-card {
-        background-color: #FFF;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .swiftcomplete-text {
-        font-size: 1.5em;
-    }
-
-    .swiftcomplete-text-sm {
-        font-size: 1.2em;
-    }
-
-    .swiftcomplete-card h1 {
-        line-height: 1.3em;
-    }
-
-    .help-text {
-        color: #555;
-        margin-left: 10px;
-    }
-</style>
-<div class="swiftcomplete-card">
+<div class="swiftcomplete-card swiftcomplete-settings-help">
     <div style="display: grid; column-gap: 50px; max-width: 1200px;">
         <div style="grid-column-start: 1; grid-column-end: 3;">
             <!--- Logo --->
