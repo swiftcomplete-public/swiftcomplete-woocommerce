@@ -278,11 +278,16 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function save_extension_data_to_order(\WC_Order $order, array $data): void
     {
+        $nonce = isset($_POST['woocommerce-process-checkout-nonce']) ? sanitize_text_field(wp_unslash($_POST['woocommerce-process-checkout-nonce'])) : '';
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'woocommerce-process_checkout')) {
+            return;
+        }
+
         $field_ids = FieldConstants::get_field_ids();
         $billing_key = 'billing_' . $field_ids['what3words'];
         $shipping_key = 'shipping_' . $field_ids['what3words'];
 
-        // phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified in CheckoutHandler::save_extension_data_to_order.
+        // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified above; values sanitized below.
         $billing_value = isset($_POST[$billing_key])
             ? sanitize_text_field(wp_unslash($_POST[$billing_key]))
             : '';
@@ -290,7 +295,7 @@ class ShortcodeCheckout implements CheckoutInterface
             ? sanitize_text_field(wp_unslash($_POST[$shipping_key]))
             : '';
         $ship_to_different_address = isset($_POST['ship_to_different_address']) && sanitize_text_field(wp_unslash($_POST['ship_to_different_address']));
-        // phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+        // phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
         if (!$ship_to_different_address && $billing_value) {
             $shipping_value = $billing_value;
