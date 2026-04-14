@@ -1,34 +1,26 @@
 name: Tagged release
 
 on:
-  push:
-    tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*'
-      - 'v[0-9]*.[0-9]*.[0-9]*-*'
-      - '[0-9]*.[0-9]*.[0-9]*'
-      - '[0-9]*.[0-9]*.[0-9]*-*'
-  release:
-    types: [published]
+  workflow_run:
+    workflows: [Release Swiftcomplete]
+    types: [completed]
 jobs:
   publish:
     name: Publish to SVN
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Install SVN
         run: |
           sudo apt-get install subversion nodejs -y
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
       - name: Setup version env
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            TAG="${{ github.event.release.tag_name }}"
-          else
-            TAG="${{ github.ref_name }}"
-          fi
-          VERSION="${TAG#v}"
+          git fetch origin --tags
+          VERSION=$(git describe --tags --exact-match HEAD | sed 's/^v//')
           echo "Version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Update version
@@ -42,38 +34,31 @@ jobs:
       - name: Validate release
         run: |
           if [ -d "$HOME/svn/tags/$VERSION" ]; then
-            echo "$VERSION is already released. Skipping publish."
-            echo "SKIP_PUBLISH=true" >> $GITHUB_ENV
+            echo "$VERSION is already released.";
+            exit 1;
           else
-            echo "$VERSION is not yet released."
-            echo "SKIP_PUBLISH=false" >> $GITHUB_ENV
+            echo "$VERSION is not yet released.";
           fi
       - name: Copy to assets
-        if: env.SKIP_PUBLISH != 'true'
         run: |
           cp -r ./assets/* "$HOME/svn/assets"
       - name: Copy to trunk
-        if: env.SKIP_PUBLISH != 'true'
         run: |
           cp -r ./swiftcomplete/* "$HOME/svn/trunk"
       - name: Add new files to SVN
-        if: env.SKIP_PUBLISH != 'true'
         run: |
           pushd "$HOME/svn"
           svn add --force trunk assets
           popd
       - name: Commit trunk
-        if: env.SKIP_PUBLISH != 'true'
         run: |
           pushd "$HOME/svn"
           svn ci -m "Updating trunk with release $VERSION" --username "swiftcomplete" --password "${{ secrets.WP_SVN_PASSWORD }}" --trust-server-cert --non-interactive
           popd
       - name: Create release tag ${{ env.VERSION }}
-        if: env.SKIP_PUBLISH != 'true'
         run: |
           svn cp "$HOME/svn/trunk" "$HOME/svn/tags/$VERSION" --trust-server-cert --non-interactive
       - name: Commit changes to SVN
-        if: env.SKIP_PUBLISH != 'true'
         run: |
           pushd "$HOME/svn"
           svn ci -m "$VERSION release" --username "swiftcomplete" --password "${{ secrets.WP_SVN_PASSWORD }}" --trust-server-cert --non-interactive

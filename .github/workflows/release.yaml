@@ -12,6 +12,8 @@ on:
       - 'v[0-9]*.[0-9]*.[0-9]*-*'
       - '[0-9]*.[0-9]*.[0-9]*'
       - '[0-9]*.[0-9]*.[0-9]*-*'
+  release:
+    types: [published]
 jobs:
   set-version:
     name: Set version from tag
@@ -21,6 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref }}
           fetch-depth: 0
       - name: Set version from tag
         id: version
