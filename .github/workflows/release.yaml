@@ -28,11 +28,18 @@ jobs:
       - name: Set version from tag
         id: version
         run: |
-          # GITHUB_REF_NAME is the tag name (e.g. v2.0.0 or 2.0.0)
-          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+            PUBLISH_REF="${{ github.event.release.tag_name }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            PUBLISH_REF="${GITHUB_REF}"
+          fi
+          VERSION="${TAG#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "publish_ref=$PUBLISH_REF" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Tag: $GITHUB_REF_NAME -> Version: $VERSION"
+          echo "Tag: $TAG -> Version: $VERSION"
       - name: Update version in plugin and readme
         run: |
           VERSION="${{ env.VERSION }}"
@@ -73,6 +80,13 @@ jobs:
           }
     outputs:
       version: ${{ steps.version.outputs.version }}
+      publish_ref: ${{ steps.version.outputs.publish_ref }}
 
-  # Add further jobs here (e.g. publish to WordPress.org SVN, create GitHub Release)
-  # and use: needs: set-version, env: VERSION: ${{ needs.set-version.outputs.version }}
+  publish-svn:
+    name: Publish to WordPress.org SVN
+    needs: set-version
+    uses: ./.github/workflows/publish.yaml
+    with:
+      version: ${{ needs.set-version.outputs.version }}
+      ref: ${{ needs.set-version.outputs.publish_ref }}
+    secrets: inherit
