@@ -30,7 +30,7 @@ jobs:
           sed -i "s/^Stable tag: .*/Stable tag: $VERSION/" swiftcomplete/README.txt
       - name: Checkout from Wordpress SVN
         run: |
-          svn co https://plugins.svn.wordpress.org/swiftlookup "$HOME/svn" --trust-server-cert --non-interactive
+          svn co https://plugins.svn.wordpress.org/swiftcomplete "$HOME/svn" --trust-server-cert --non-interactive
       - name: Validate release
         run: |
           if [ -d "$HOME/svn/tags/$VERSION" ]; then
