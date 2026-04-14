@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Swiftcomplete for WooCommerce
  * Plugin URI: https://swiftcomplete.notion.site/Swiftcomplete-WooCommerce-plugin-for-SwiftLookup-1a466db17f3b8018bc4ce65f85f6c852
-* Version: 2.0.1
+* Version: 2.0.2
  * Description: Swiftcomplete Plugin for WooCommerce
  * Author: Swiftcomplete
  * Author URI: https://www.swiftcomplete.com
@@ -19,7 +19,7 @@
 defined('ABSPATH') || exit;
 
 if (!defined('SWIFTCOMPLETE_VERSION')) {
-  define('SWIFTCOMPLETE_VERSION', '2.0.1');
+  define('SWIFTCOMPLETE_VERSION', '2.0.2');
 }
 
 if (!defined('SWIFTCOMPLETE_PLUGIN_FILE')) {
