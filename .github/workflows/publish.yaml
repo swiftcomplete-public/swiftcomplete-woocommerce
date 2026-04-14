@@ -54,7 +54,7 @@ jobs:
       - name: Commit trunk
         run: |
           pushd "$HOME/svn"
-          svn ci -m "Updating trunk with release $VERSION" --username "${{ vars.WP_SVN_USERNAME }}" --password "${{ secrets.WP_SVN_PASSWORD }}" --trust-server-cert --non-interactive
+          svn ci -m "Updating trunk with release $VERSION" --username "swiftcomplete" --password "${{ secrets.WP_SVN_PASSWORD }}" --trust-server-cert --non-interactive
           popd
       - name: Create release tag ${{ env.VERSION }}
         run: |
@@ -62,5 +62,5 @@ jobs:
       - name: Commit changes to SVN
         run: |
           pushd "$HOME/svn"
-          svn ci -m "$VERSION release" --username "${{ vars.WP_SVN_USERNAME }}" --password "${{ secrets.WP_SVN_PASSWORD }}" --trust-server-cert --non-interactive
+          svn ci -m "$VERSION release" --username "swiftcomplete" --password "${{ secrets.WP_SVN_PASSWORD }}" --trust-server-cert --non-interactive
           popd
