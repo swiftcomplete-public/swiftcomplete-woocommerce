@@ -1,0 +1,28 @@
+/**
+ * Swiftcomplete settings page (admin)
+ *
+ * @package Swiftcomplete
+ */
+
+.swiftcomplete-card {
+	background-color: #fff;
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.swiftcomplete-text {
+	font-size: 1.5em;
+}
+
+.swiftcomplete-text-sm {
+	font-size: 1.2em;
+}
+
+.swiftcomplete-card h1 {
+	line-height: 1.3em;
+}
+
+.swiftcomplete-settings-help .help-text {
+	color: #555;
+	margin-left: 10px;
+}

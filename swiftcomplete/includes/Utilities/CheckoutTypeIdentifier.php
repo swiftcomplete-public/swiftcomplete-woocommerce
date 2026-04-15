@@ -68,9 +68,11 @@ class CheckoutTypeIdentifier
         return true;
       }
     }
+    // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading AJAX action for checkout type detection.
     $is_wc_ajax = defined('DOING_AJAX') && DOING_AJAX &&
       isset($_REQUEST['wc-ajax']) &&
       in_array(sanitize_text_field(wp_unslash($_REQUEST['wc-ajax'])), array('checkout', 'update_order_review'), true);
+    // phpcs:enable WordPress.Security.NonceVerification.Recommended
     return ($is_wc_ajax || !$this->is_checkout()) && $this->checkout_page_has_shortcode($checkout_page_id);
   }
 
@@ -96,9 +98,11 @@ class CheckoutTypeIdentifier
     if (function_exists('is_wc_endpoint_url')) {
       return is_wc_endpoint_url('order-received');
     }
+    // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Reading URL param for order-received page detection.
     if ($this->is_checkout() && isset($_GET['order-received'])) {
       return !empty($_GET['order-received']);
     }
+    // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
     return false;
   }

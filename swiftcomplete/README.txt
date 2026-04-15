@@ -1,10 +1,10 @@
-=== SwiftLookup for WooCommerce ===
+=== Swiftcomplete for WooCommerce ===
 Contributors: Swiftcomplete
-Tags: Swiftcomplete, address validator, what3words address, searchbox, search, address, validation, autosuggest, w3w, capture, address lookup, autocomplete, verification, address collection, address finder, cleansing, address standardising
-Requires at least: 4.7
-Tested up to: 6.4
-Stable tag: 2.0.0
-Requires PHP: 7.0
+Tags: Swiftcomplete, address validator, what3words, WooCommerce, autocomplete
+Requires at least: 5.0
+Tested up to: 6.9
+Stable tag: 2.0.2
+Requires PHP: 7.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,18 +22,18 @@ Swiftcomplete is designed to be integrated into your address capture flow, for e
 
 = WordPress Installation (recommended) =
 
-You can install SwiftLookup plugin through the WordPress plugins page in your WordPress admin panel.
+You can install Swiftcomplete plugin through the WordPress plugins page in your WordPress admin panel.
 
 1. Navigate to the _Plugins > Add New_ page
-2. Search for "SwiftLookup"
+2. Search for "Swiftcomplete"
 3. Click the _Install Now_ button.
 4. Once installed, you can activate the plugin on the _Plugins_ page.
 
 = Manual Installation =
 
-You can download the SwiftLookup plugin from the [WordPress Plugins site](https://wordpress.org/plugins/swiftlookup/#installation).
+You can download the Swiftcomplete plugin from the [WordPress Plugins site](https://wordpress.org/plugins/swiftcomplete/#installation).
 
-1. Download the SwiftLookup plugin from the WordPress Plugins site
+1. Download the Swiftcomplete plugin from the WordPress Plugins site
 2. Once you have downloaded the zipped plugin, you can upload it to your WordPress installation by navigating to _Plugins > Add New_, click the _Upload Plugin_ button
 3. Select the zipped plugin file and click _Install Now_
 4. Once installed, you can activate the plugin on the _Plugins_ page.
@@ -48,17 +48,26 @@ You can learn more about our privacy policy here:
 
 = Get in touch with us =
 
-Have any questions? Want to learn more about how the SwiftLookup plugin works? Get in touch with us at [support@swiftcomplete.com](mailto:support@swiftcomplete.com).
+Have any questions? Want to learn more about how the Swiftcomplete plugin works? Get in touch with us at [support@swiftcomplete.com](mailto:support@swiftcomplete.com).
 
 == Screenshots ==
 
-1. SwiftLookup
-2. SwiftLookup Address flow
-3. SwiftLookup - Input Flow - Postcode
-4. SwiftLookup - Input Flow - Street Address
-5. SwiftLookup - Input Flow - what3words address
+1. Swiftcomplete
+2. Swiftcomplete Address flow
+3. Swiftcomplete - Input Flow - Postcode
+4. Swiftcomplete - Input Flow - Street Address
+5. Swiftcomplete - Input Flow - what3words address
 
 == Changelog ==
+
+= 2.0.2 =
+
+* Added WordPress.org plugin icon and banner assets
+
+= 2.0.1 =
+
+* Hardened checkout and admin order handling (nonces, capabilities, escaping) per WordPress.org plugin guidelines
+* Moved settings help styling to enqueued CSS; fixed plugin URL and asset version consistency
 
 = 2.0.0 =
 

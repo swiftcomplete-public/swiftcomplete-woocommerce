@@ -24,11 +24,11 @@ class SettingsManager
   private const SETTINGS_OPTION = 'swiftcomplete_settings';
 
   /**
-   * Settings page slug
+   * Settings page slug (options-general.php?page=…)
    *
    * @var string
    */
-  private const SETTINGS_PAGE = 'swiftcomplete';
+  public const SETTINGS_PAGE = 'swiftcomplete';
 
   /**
    * Hook manager
@@ -146,7 +146,7 @@ class SettingsManager
   public function add_plugin_settings_link(array $actions): array
   {
     $mylinks = array(
-      '<a href="' . admin_url('options-general.php?page=' . self::SETTINGS_PAGE) . '">' . __('Settings') . '</a>'
+      '<a href="' . esc_url(admin_url('options-general.php?page=' . self::SETTINGS_PAGE)) . '">' . esc_html__('Settings', 'swiftcomplete') . '</a>'
     );
     return array_merge($mylinks, $actions);
   }
@@ -214,7 +214,7 @@ class SettingsManager
   public function render_w3w_enabled_field(): void
   {
     $settings = get_option(self::SETTINGS_OPTION);
-    $w3w_enabled = $settings === false || (!\array_key_exists('w3w_enabled', $settings) || (\array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] === true));
+    $w3w_enabled = $settings !== false && \array_key_exists('w3w_enabled', $settings) && $settings['w3w_enabled'] === true;
 
     if ($w3w_enabled === true) {
       echo "<input id='swiftcomplete_w3w_enabled' name='swiftcomplete_settings[w3w_enabled]' type='checkbox' checked />";
@@ -371,7 +371,7 @@ class SettingsManager
       ? $settings['api_key']
       : '';
 
-    $w3w_enabled = !isset($settings['w3w_enabled']) || $settings['w3w_enabled'] === true;
+    $w3w_enabled = isset($settings['w3w_enabled']) && $settings['w3w_enabled'] === true;
     $search_for = $w3w_enabled ? 'address,what3words' : 'address';
     $hide_fields = isset($settings['hide_fields']) && $settings['hide_fields'] === true;
     $bias_towards = isset($settings['bias_towards_lat_lon']) ? $settings['bias_towards_lat_lon'] : '';

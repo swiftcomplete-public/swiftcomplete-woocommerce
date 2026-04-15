@@ -1,19 +1,73 @@
-name: Tagged release
+name: Publish Swiftcomplete to SVN
 
 on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_call:
+    inputs:
+      version:
+        description: Release version without v prefix (e.g. 2.0.1)
+        required: true
+        type: string
+      ref:
+        description: Git ref (tag or SHA) to publish from
+        required: true
+        type: string
+    secrets:
+      WP_SVN_PASSWORD:
+        required: true
 jobs:
   publish:
-    name: Publish
+    name: Publish to SVN
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
+      - name: Install SVN
         run: |
-          sudo apt-get install subversion -y
-      - name: Setup environment variable
+          sudo apt-get install subversion nodejs -y
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - name: Setup version env
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
-          echo Version: $VERSION
+          VERSION="${{ inputs.version }}"
+          echo "Version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Update version
+        run: |
+          sed -i "s/^\s*\* Version:.*/\* Version: $VERSION/" swiftcomplete/swiftcomplete.php
+          sed -i "s/define('SWIFTCOMPLETE_VERSION', '[^']*');/define('SWIFTCOMPLETE_VERSION', '$VERSION');/" swiftcomplete/swiftcomplete.php
+          sed -i "s/^Stable tag: .*/Stable tag: $VERSION/" swiftcomplete/README.txt
+      - name: Checkout from Wordpress SVN
+        run: |
+          svn co https://plugins.svn.wordpress.org/swiftcomplete "$HOME/svn" --trust-server-cert --non-interactive
+      - name: Validate release
+        run: |
+          if [ -d "$HOME/svn/tags/$VERSION" ]; then
+            echo "$VERSION is already released.";
+            exit 1;
+          else
+            echo "$VERSION is not yet released.";
+          fi
+      - name: Copy to assets
+        run: |
+          cp -r ./assets/* "$HOME/svn/assets"
+      - name: Copy to trunk
+        run: |
+          cp -r ./swiftcomplete/* "$HOME/svn/trunk"
+      - name: Add new files to SVN
+        run: |
+          pushd "$HOME/svn"
+          svn add --force trunk assets
+          popd
+      - name: Commit trunk
+        run: |
+          pushd "$HOME/svn"
+          svn ci -m "Updating trunk with release $VERSION" --username "swiftcomplete" --password "${{ secrets.WP_SVN_PASSWORD }}" --trust-server-cert --non-interactive
+          popd
+      - name: Create release tag ${{ env.VERSION }}
+        run: |
+          svn cp "$HOME/svn/trunk" "$HOME/svn/tags/$VERSION" --trust-server-cert --non-interactive
+      - name: Commit changes to SVN
+        run: |
+          pushd "$HOME/svn"
+          svn ci -m "$VERSION release" --username "swiftcomplete" --password "${{ secrets.WP_SVN_PASSWORD }}" --trust-server-cert --non-interactive
+          popd

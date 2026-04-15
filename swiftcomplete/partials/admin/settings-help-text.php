@@ -7,38 +7,15 @@
 
 defined('ABSPATH') || exit;
 ?>
-<style>
-    .swiftcomplete-card {
-        background-color: #FFF;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .swiftcomplete-text {
-        font-size: 1.5em;
-    }
-
-    .swiftcomplete-text-sm {
-        font-size: 1.2em;
-    }
-
-    .swiftcomplete-card h1 {
-        line-height: 1.3em;
-    }
-
-    .help-text {
-        color: #555;
-        margin-left: 10px;
-    }
-</style>
-<div class="swiftcomplete-card">
+<div class="swiftcomplete-card swiftcomplete-settings-help">
     <div style="display: grid; column-gap: 50px; max-width: 1200px;">
         <div style="grid-column-start: 1; grid-column-end: 3;">
             <!--- Logo --->
-            <img src="https://www.swiftcomplete.com/images/swiftcomplete-what3words-logo.svg" alt="Swiftcomplete"
-                title="Swiftcomplete" width="175px" />
-            <h1>SwiftLookup Plugin</h1>
-            <p class="swiftcomplete-text-xm">Capture accurate billing and shipping addresses with SwiftLookup plugin for
+            <img src="<?php echo esc_url(plugins_url('assets/images/swiftcomplete-what3words-logo.svg', SWIFTCOMPLETE_PLUGIN_FILE)); ?>"
+                alt="Swiftcomplete" title="Swiftcomplete" width="175px" />
+            <h1>Swiftcomplete Plugin</h1>
+            <p class="swiftcomplete-text-xm">Capture accurate billing and shipping addresses with Swiftcomplete plugin
+                for
                 WooCommerce.</p>
             <p class="swiftcomplete-text-xm">Before you can use the Swiftcomplete plugin, you will need to get an API
                 key.</p>
@@ -52,7 +29,7 @@ defined('ABSPATH') || exit;
         </div>
         <div style="grid-column-start: 3; grid-column-end: 4;">
             <img alt="Swiftcomplete"
-                src="https://corpassets.what3words.com/wp-content/uploads/2022/08/Swiftcomplete-1100-x-825-px.jpg"
+                src="<?php echo esc_url(plugins_url('assets/images/swiftcomplete-1100-x-825-px.jpg', SWIFTCOMPLETE_PLUGIN_FILE)); ?>"
                 width="400" />
         </div>
     </div>

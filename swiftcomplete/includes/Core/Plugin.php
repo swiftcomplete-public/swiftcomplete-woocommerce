@@ -29,13 +29,6 @@ defined('ABSPATH') || exit;
 class Plugin
 {
     /**
-     * Plugin version
-     *
-     * @var string
-     */
-    const VERSION = '1.0.0';
-
-    /**
      * Instance of this class
      *
      * @var Plugin
@@ -74,6 +67,7 @@ class Plugin
             $this->init();
         } catch (\Throwable $e) {
             if (function_exists('error_log')) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for initialization failures.
                 error_log('Swiftcomplete: Failed to initialize plugin - ' . $e->getMessage());
             }
         }
@@ -150,7 +144,7 @@ class Plugin
                 $container->get('hook_manager'),
                 $container->get('settings_manager'),
                 $container->get('customer_meta'),
-                self::VERSION,
+                SWIFTCOMPLETE_VERSION,
                 SWIFTCOMPLETE_PLUGIN_URL
             );
         });
@@ -202,6 +196,7 @@ class Plugin
 
         if (!file_exists($partial_path)) {
             if (function_exists('error_log')) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for missing partials.
                 error_log("Swiftcomplete partial not found: {$partial_path}");
             }
             return;

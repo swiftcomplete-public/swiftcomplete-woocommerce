@@ -8,4 +8,4 @@
 
 defined('ABSPATH') || exit;
 ?>
-<p><strong><?php echo esc_html__('what3words'); ?>:</strong><br /><?php echo esc_html($what3words); ?></p>
+<p><strong><?php echo esc_html__('what3words', 'swiftcomplete'); ?>:</strong><br /><?php echo esc_html($what3words); ?></p>

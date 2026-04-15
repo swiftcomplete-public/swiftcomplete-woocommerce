@@ -733,7 +733,7 @@ function initialiseSwiftcompleteBlocks(addressType, config) {
 /**
  * Blocks checkout can mount/unmount the billing form dynamically (e.g. when
  * "Use shipping address for billing" is toggled). This helper watches for new
- * address forms and initializes SwiftLookup for any newly-added types.
+ * address forms and initializes Swiftcomplete for any newly-added types.
  */
 const sc_blocks_component_loader = {
     started: false,

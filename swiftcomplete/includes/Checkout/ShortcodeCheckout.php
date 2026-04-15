@@ -131,7 +131,7 @@ class ShortcodeCheckout implements CheckoutInterface
             'key' => $key,
             'field' => array_merge(
                 array(
-                    'label' => __($label, 'swiftcomplete'),
+                    'label' => esc_html($label),
                     'required' => false,
                     'class' => array('form-row-wide'),
                     'type' => 'text',
@@ -278,18 +278,24 @@ class ShortcodeCheckout implements CheckoutInterface
      */
     public function save_extension_data_to_order(\WC_Order $order, array $data): void
     {
+        $nonce = isset($_POST['woocommerce-process-checkout-nonce']) ? sanitize_text_field(wp_unslash($_POST['woocommerce-process-checkout-nonce'])) : '';
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'woocommerce-process_checkout')) {
+            return;
+        }
+
         $field_ids = FieldConstants::get_field_ids();
         $billing_key = 'billing_' . $field_ids['what3words'];
         $shipping_key = 'shipping_' . $field_ids['what3words'];
 
+        // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Nonce verified above; values sanitized below.
         $billing_value = isset($_POST[$billing_key])
             ? sanitize_text_field(wp_unslash($_POST[$billing_key]))
             : '';
         $shipping_value = isset($_POST[$shipping_key])
             ? sanitize_text_field(wp_unslash($_POST[$shipping_key]))
             : '';
-
-        $ship_to_different_address = isset($_POST['ship_to_different_address']) && $_POST['ship_to_different_address'];
+        $ship_to_different_address = isset($_POST['ship_to_different_address']) && sanitize_text_field(wp_unslash($_POST['ship_to_different_address']));
+        // phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
         if (!$ship_to_different_address && $billing_value) {
             $shipping_value = $billing_value;
@@ -324,6 +330,7 @@ class ShortcodeCheckout implements CheckoutInterface
             (strpos($key, 'billing_') === 0 || strpos($key, 'shipping_') === 0) &&
             (strpos($key, $field_ids['what3words']) !== false || strpos($key, $field_ids['search_field']) !== false)
         ) {
+            // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- Must match WooCommerce's optional label for str_replace.
             $optional = '&nbsp;<span class="optional">(' . esc_html__('optional', 'woocommerce') . ')</span>';
             $field = str_replace($optional, '', $field);
         }

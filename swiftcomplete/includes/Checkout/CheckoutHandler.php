@@ -94,7 +94,7 @@ class CheckoutHandler
      */
     public function save_extension_data_to_order($order_id, $data = array())
     {
-        $nonce = isset($_POST['woocommerce-process-checkout-nonce']) ? wp_unslash($_POST['woocommerce-process-checkout-nonce']) : '';
+        $nonce = isset($_POST['woocommerce-process-checkout-nonce']) ? sanitize_text_field(wp_unslash($_POST['woocommerce-process-checkout-nonce'])) : '';
         if (empty($nonce) || !wp_verify_nonce($nonce, 'woocommerce-process_checkout')) {
             return;
         }
