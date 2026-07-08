@@ -130,18 +130,25 @@
                     })
                 );
 
-                el.appendChild(
-                    makeButton('scfb-remove', '×', 'Remove token', () => {
-                        // Drop the separator on the side that collapses: the trailing
-                        // one for a first/middle chip, the leading one for the last chip.
-                        const sepIndex = i === state.chips.length - 1 ? i - 1 : i;
-                        state.chips.splice(i, 1);
-                        if (sepIndex >= 0) {
-                            state.seps.splice(sepIndex, 1);
-                        }
-                        commit();
-                    })
-                );
+                const removeBtn = makeButton('scfb-remove', '×', 'Remove token', () => {
+                    // Keep at least one token per field.
+                    if (state.chips.length <= 1) {
+                        return;
+                    }
+                    // Drop the separator on the side that collapses: the trailing
+                    // one for a first/middle chip, the leading one for the last chip.
+                    const sepIndex = i === state.chips.length - 1 ? i - 1 : i;
+                    state.chips.splice(i, 1);
+                    if (sepIndex >= 0) {
+                        state.seps.splice(sepIndex, 1);
+                    }
+                    commit();
+                });
+                if (state.chips.length <= 1) {
+                    removeBtn.disabled = true;
+                    removeBtn.title = 'Each field must keep at least one token';
+                }
+                el.appendChild(removeBtn);
 
                 el.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', JSON.stringify({ field: fieldKey, index: i }));

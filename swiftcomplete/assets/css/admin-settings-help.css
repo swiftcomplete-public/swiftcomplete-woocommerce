@@ -179,6 +179,15 @@
 	color: #b32d2e;
 }
 
+.scfb-chip button:disabled {
+	color: #c3c4c7;
+	cursor: not-allowed;
+}
+
+.scfb-chip button:disabled:hover {
+	background: transparent;
+}
+
 /* Separator toggle sitting between two pills */
 .scfb-sep {
 	display: inline-flex;

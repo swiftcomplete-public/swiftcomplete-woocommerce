@@ -234,7 +234,7 @@ class SettingsManager
     echo '<p class="swiftcomplete-format-intro">Choose which address components populate each field. '
       . 'Click <strong>+ Add token</strong> to add one, drag chips to reorder, tap the separator between chips '
       . 'to switch comma/space, and use <strong>Aa/AA</strong> to force uppercase.</p>';
-    echo '<p class="swiftcomplete-format-note">Note: chips can only be dragged to reorder <strong>within the same field</strong>.</p>';
+    echo '<p class="swiftcomplete-format-note">Note: chips can only be dragged to reorder <strong>within the same field</strong>, and each field must keep at least one token.</p>';
     echo '<p><button type="button" class="button" data-sc-format-reset>Reset to defaults</button></p>';
   }
 
