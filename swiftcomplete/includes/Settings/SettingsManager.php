@@ -8,6 +8,7 @@
 namespace Swiftcomplete\Settings;
 
 use Swiftcomplete\Core\HookManager;
+use Swiftcomplete\Utilities\AddressFormatDefaults;
 
 defined('ABSPATH') || exit;
 
@@ -29,6 +30,13 @@ class SettingsManager
    * @var string
    */
   public const SETTINGS_PAGE = 'swiftcomplete';
+
+  /**
+   * Render group for the collapsible "Advanced settings" block.
+   *
+   * @var string
+   */
+  public const ADVANCED_SETTINGS_PAGE = 'swiftcomplete_advanced';
 
   /**
    * Hook manager
@@ -87,6 +95,18 @@ class SettingsManager
     add_settings_field('swiftcomplete_billing_placeholder', 'Billing field placeholder text', array($this, 'render_billing_placeholder_field'), self::SETTINGS_PAGE, 'swiftcomplete_text_settings');
     add_settings_field('swiftcomplete_shipping_label', 'Shipping field label', array($this, 'render_shipping_label_field'), self::SETTINGS_PAGE, 'swiftcomplete_text_settings');
     add_settings_field('swiftcomplete_shipping_placeholder', 'Shipping field placeholder text', array($this, 'render_shipping_placeholder_field'), self::SETTINGS_PAGE, 'swiftcomplete_text_settings');
+
+    add_settings_section('swiftcomplete_format_settings', 'Address field formats', array($this, 'render_format_header'), self::ADVANCED_SETTINGS_PAGE);
+    foreach (AddressFormatDefaults::FIELDS as $format_key => $format_label) {
+      add_settings_field(
+        'swiftcomplete_format_' . $format_key,
+        $format_label,
+        array($this, 'render_format_field'),
+        self::ADVANCED_SETTINGS_PAGE,
+        'swiftcomplete_format_settings',
+        array('key' => $format_key)
+      );
+    }
   }
 
   /**
@@ -113,6 +133,19 @@ class SettingsManager
     $validated['w3w_enabled'] = isset($input['w3w_enabled']);
     $validated['state_counties_enabled'] = isset($input['state_counties_enabled']);
     $validated['hide_fields'] = isset($input['hide_fields']);
+
+    $validated['field_formats'] = array();
+    $input_formats = (isset($input['field_formats']) && is_array($input['field_formats']))
+      ? $input['field_formats']
+      : array();
+    foreach (AddressFormatDefaults::DEFAULTS as $format_key => $format_default) {
+      $raw = isset($input_formats[$format_key])
+        ? sanitize_text_field(wp_unslash($input_formats[$format_key]))
+        : '';
+      $clean = AddressFormatDefaults::sanitize_format($raw);
+      $validated['field_formats'][$format_key] = ($clean !== '') ? $clean : $format_default;
+    }
+
     return $validated;
   }
 
@@ -189,6 +222,54 @@ class SettingsManager
   public function render_text_header(): void
   {
     \Swiftcomplete\Core\Plugin::load_partial('admin/text-header');
+  }
+
+  /**
+   * Render the address-format section intro.
+   *
+   * @return void
+   */
+  public function render_format_header(): void
+  {
+    echo '<p class="swiftcomplete-format-intro">Choose which address components populate each field. '
+      . 'Click <strong>+ Add token</strong> to add one, drag chips to reorder, tap the separator between chips '
+      . 'to switch comma/space, and use <strong>Aa/AA</strong> to force uppercase.</p>';
+    echo '<p class="swiftcomplete-format-note">Note: chips can only be dragged to reorder <strong>within the same field</strong>, and each field must keep at least one token.</p>';
+    echo '<p><button type="button" class="button" data-sc-format-reset>Reset to defaults</button></p>';
+  }
+
+  /**
+   * Render one address-format field row (hidden input enhanced by the builder JS).
+   *
+   * @param array $args Row args; expects ['key' => <field key>].
+   * @return void
+   */
+  public function render_format_field($args): void
+  {
+    $key = is_array($args) && isset($args['key']) ? $args['key'] : '';
+    if (!array_key_exists($key, AddressFormatDefaults::DEFAULTS)) {
+      return;
+    }
+
+    $settings = get_option(self::SETTINGS_OPTION);
+    $stored = (is_array($settings) && isset($settings['field_formats']) && is_array($settings['field_formats']))
+      ? $settings['field_formats']
+      : array();
+
+    $value = (isset($stored[$key]) && is_string($stored[$key]) && $stored[$key] !== '')
+      ? AddressFormatDefaults::sanitize_format($stored[$key])
+      : AddressFormatDefaults::DEFAULTS[$key];
+    if ($value === '') {
+      $value = AddressFormatDefaults::DEFAULTS[$key];
+    }
+
+    printf(
+      '<div class="swiftcomplete-format-field" data-sc-format-field="%1$s">'
+      . '<input type="hidden" id="swiftcomplete_format_%1$s" name="swiftcomplete_settings[field_formats][%1$s]" value="%2$s" />'
+      . '</div>',
+      esc_attr($key),
+      esc_attr($value)
+    );
   }
 
   /**
@@ -392,6 +473,9 @@ class SettingsManager
       'billing_placeholder' => $billing_placeholder,
       'shipping_placeholder' => $shipping_placeholder,
       'search_for' => $search_for,
+      'field_formats' => AddressFormatDefaults::resolve(
+        isset($settings['field_formats']) ? $settings['field_formats'] : array()
+      ),
     );
   }
 }

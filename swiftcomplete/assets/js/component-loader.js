@@ -1,16 +1,31 @@
 'use strict';
 
-const FIELD_FORMATS = {
-    ADDRESS_1_BASE: 'BuildingName, BuildingNumber SecondaryRoad, Road',
-    ADDRESS_1_WITH_SUBBUILDING: 'SubBuilding, BuildingName, BuildingNumber SecondaryRoad, Road',
-    ADDRESS_1_WITH_COMPANY: 'Company, BuildingName, BuildingNumber SecondaryRoad, Road',
-    ADDRESS_1_WITH_BOTH: 'Company, SubBuilding, BuildingName, BuildingNumber SecondaryRoad, Road',
-    ADDRESS_2: 'SubBuilding',
-    COMPANY: 'Company',
-    CITY: 'TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY',
-    POSTCODE: 'POSTCODE',
-    WHAT3WORDS: 'what3words',
+const DEFAULT_FIELD_FORMATS = {
+    address_1: 'BuildingName, BuildingNumber SecondaryRoad, Road',
+    address_2: 'SubBuilding',
+    company: 'Company',
+    city: 'TertiaryLocality, SecondaryLocality, PRIMARYLOCALITY',
 };
+
+const STATE_FORMAT = 'STATEABBREVIATION';
+
+const POSTCODE_FORMAT = 'POSTCODE';
+
+const WHAT3WORDS_FORMAT = 'what3words';
+
+/**
+ * Resolve a configured field format, falling back to the built-in default.
+ * @param {Object} settings - Settings object (may carry field_formats)
+ * @param {string} key - Field key (address_1, address_2, company, city)
+ * @returns {string} Format string
+ */
+function scResolveFormat(settings, key) {
+    const configured = settings?.field_formats?.[key];
+    if (typeof configured === 'string' && configured.trim().length > 0) {
+        return configured;
+    }
+    return DEFAULT_FIELD_FORMATS[key] || '';
+}
 
 const sc_address_builder = {
     /**
@@ -23,17 +38,19 @@ const sc_address_builder = {
      */
     build(addressType, settings, autocompleteField) {
         const fields = [];
-        let address1Format = FIELD_FORMATS.ADDRESS_1_BASE;
+        let address1Format = scResolveFormat(settings, 'address_1');
 
         const address2 = sc_fields.getFieldWithContainer(addressType, 'address_2');
         if (address2?.field) {
             fields.push({
                 container: address2.container,
                 field: address2.field,
-                format: FIELD_FORMATS.ADDRESS_2,
+                format: scResolveFormat(settings, 'address_2'),
             });
         } else {
-            address1Format = FIELD_FORMATS.ADDRESS_1_WITH_SUBBUILDING;
+            // Address line 2 field is absent, so append its configured tokens to
+            // address_1 to avoid losing them (e.g. sub-building / flat number).
+            address1Format = `${address1Format}, ${scResolveFormat(settings, 'address_2')}`;
             this.setupAddress2Toggle(addressType, settings, autocompleteField);
         }
 
@@ -42,11 +59,8 @@ const sc_address_builder = {
             fields.push({
                 container: company.container,
                 field: company.field,
-                format: FIELD_FORMATS.COMPANY,
+                format: scResolveFormat(settings, 'company'),
             });
-            address1Format = address1Format.includes('SubBuilding')
-                ? FIELD_FORMATS.ADDRESS_1_WITH_BOTH
-                : FIELD_FORMATS.ADDRESS_1_WITH_COMPANY;
         }
 
         const address1 = sc_fields.getFieldWithContainer(addressType, 'address_1');
@@ -63,13 +77,13 @@ const sc_address_builder = {
             fields.push({
                 container: city.container,
                 field: city.field,
-                format: FIELD_FORMATS.CITY,
+                format: scResolveFormat(settings, 'city'),
             });
         }
 
         const state = sc_fields.getFieldWithContainer(addressType, 'state');
         if (state?.field) {
-            const stateFormat = settings.state_counties ? 'STATEABBREVIATION' : '';
+            const stateFormat = settings.state_counties ? STATE_FORMAT : '';
             fields.push({
                 container: state.container,
                 field: state.field,
@@ -82,7 +96,7 @@ const sc_address_builder = {
             fields.push({
                 container: postcode.container,
                 field: postcode.field,
-                format: FIELD_FORMATS.POSTCODE,
+                format: POSTCODE_FORMAT,
             });
         }
 
@@ -95,7 +109,7 @@ const sc_address_builder = {
                 fields.push({
                     container: what3words.container,
                     field: what3words.field,
-                    format: FIELD_FORMATS.WHAT3WORDS,
+                    format: WHAT3WORDS_FORMAT,
                 });
             }
         }

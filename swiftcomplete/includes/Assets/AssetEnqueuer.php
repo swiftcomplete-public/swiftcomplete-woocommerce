@@ -12,6 +12,7 @@ use Swiftcomplete\Core\HookManager;
 use Swiftcomplete\Settings\SettingsManager;
 use Swiftcomplete\Utilities\CheckoutTypeIdentifier;
 use Swiftcomplete\Utilities\FieldConstants;
+use Swiftcomplete\Utilities\AddressFormatDefaults;
 use Swiftcomplete\Utilities\WooCommercePageContext;
 
 defined('ABSPATH') || exit;
@@ -112,7 +113,7 @@ class AssetEnqueuer
         }
 
         // Settings UI must load before an API key exists; keep outside is_enabled() guard.
-        $this->hook_manager->register_action('admin_enqueue_scripts', array($this, 'enqueue_admin_settings_screen_styles'), 10, 1);
+        $this->hook_manager->register_action('admin_enqueue_scripts', array($this, 'enqueue_admin_settings_screen_assets'), 10, 1);
 
         if (!$this->settings_manager->is_enabled()) {
             return;
@@ -126,12 +127,12 @@ class AssetEnqueuer
     }
 
     /**
-     * Enqueue styles for the plugin settings screen only (admin).
+     * Enqueue styles + the format-builder script for the plugin settings screen only.
      *
      * @param string $hook_suffix Current admin page hook.
      * @return void
      */
-    public function enqueue_admin_settings_screen_styles(string $hook_suffix): void
+    public function enqueue_admin_settings_screen_assets(string $hook_suffix): void
     {
         $slug = SettingsManager::SETTINGS_PAGE;
         $allowed = array(
@@ -147,6 +148,24 @@ class AssetEnqueuer
             $this->plugin_url . 'assets/css/admin-settings-help.css',
             array(),
             $this->version
+        );
+
+        $handle = 'swiftcomplete-admin-format-builder';
+        wp_enqueue_script(
+            $handle,
+            $this->plugin_url . 'assets/js/admin-format-builder.js',
+            array(),
+            $this->version,
+            true
+        );
+        self::invoke_function_inline_script(
+            $handle,
+            'const SC_FORMAT_BUILDER = %s;',
+            array(
+                'tokens' => AddressFormatDefaults::ALLOWED_TOKENS,
+                'defaults' => AddressFormatDefaults::DEFAULTS,
+            ),
+            'before'
         );
     }
 

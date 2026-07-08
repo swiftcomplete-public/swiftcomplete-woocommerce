@@ -3,7 +3,7 @@ Contributors: Swiftcomplete
 Tags: Swiftcomplete, address validator, what3words, WooCommerce, autocomplete
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 2.0.2
+Stable tag: 2.1.0
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,10 @@ Have any questions? Want to learn more about how the Swiftcomplete plugin works?
 5. Swiftcomplete - Input Flow - what3words address
 
 == Changelog ==
+
+= 2.1.0 =
+
+* Added configurable address field formats — choose which address components fill Address line 1, Address line 2, Company, and City from a new "Advanced" section in the plugin settings (defaults unchanged; works on classic and block-based checkout)
 
 = 2.0.2 =
 
